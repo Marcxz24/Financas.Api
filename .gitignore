@@ -1,0 +1,25 @@
+# Visual Studio
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build e Pastas Temporárias
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# .NET Core / ASP.NET Core
+appsettings.Development.json
+project.lock.json
+.aspnet/
+
+# Sistema Operacional
+Thumbs.db
+desktop.ini
+.DS_Store
