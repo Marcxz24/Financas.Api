@@ -1,5 +1,5 @@
 ﻿using Financas.Api.Data;
-using Financas.Api.Models;
+using Financas.Api.Entities;
 using Financas.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

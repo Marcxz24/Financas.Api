@@ -1,4 +1,4 @@
-﻿using Financas.Api.Models;
+﻿using Financas.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Financas.Api.Data
