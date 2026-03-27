@@ -1,5 +1,6 @@
 ﻿using Financas.Api.Data;
 using Financas.Api.Models;
+using Financas.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,18 +10,26 @@ namespace Financas.Api.Controllers
     [Route("api/usuarios")]
     public class UsuarioController : ControllerBase
     {
-        private readonly FinancasDbContext _context;
+        private readonly UsuarioService _usuarioService;
 
-        public UsuarioController(FinancasDbContext context) 
+        public UsuarioController(UsuarioService userService) 
         {
-            _context = context;
+            _usuarioService = userService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
         {
-            var usuarios = await _context.Usuarios.ToListAsync();
+            var usuarios = await _usuarioService.GetUsuario();
             return Ok(usuarios);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Usuario>> CriarUsuario([FromBody] Usuario usuario)
+        {
+            var novoUsuario = await _usuarioService.CriarUsuario(usuario);
+
+            return CreatedAtAction(nameof(GetUsuarios), new { id = novoUsuario.Id }, novoUsuario);
         }
     }
 }

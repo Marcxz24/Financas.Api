@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Financas.Api.Models
 {
+    [Table("usuarios")]
     public class Usuario
     {
         [Key]

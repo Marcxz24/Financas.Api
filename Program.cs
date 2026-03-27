@@ -1,11 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Financas.Api.Data;
+using Financas.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<FinancasDbContext>(options => options.UseMySQL(connectionString));
+
+builder.Services.AddScoped<UsuarioService>();
 
 // Add services to the container.
 
