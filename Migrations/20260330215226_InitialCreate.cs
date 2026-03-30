@@ -21,16 +21,22 @@ namespace Financas.Api.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    Username = table.Column<string>(type: "longtext", nullable: false),
-                    Email = table.Column<string>(type: "longtext", nullable: false),
-                    Password = table.Column<string>(type: "longtext", nullable: false),
-                    DataCadastro = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    username = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false),
+                    email = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false),
+                    password = table.Column<string>(type: "longtext", nullable: false),
+                    data_cadastro = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_usuarios", x => x.Id);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_usuarios_email",
+                table: "usuarios",
+                column: "email",
+                unique: true);
         }
 
         /// <inheritdoc />
