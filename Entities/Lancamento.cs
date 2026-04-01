@@ -17,7 +17,7 @@ namespace Financas.Api.Entities
         /// <summary>
         /// Descrição ou título da movimentação (ex: "Aluguel", "Salário", "Mercado").
         /// </summary>
-        public string Descricao { get; set; }
+        public string Descricao { get; set; } = string.Empty;
 
         /// <summary>
         /// Valor monetário da transação. 
@@ -45,6 +45,6 @@ namespace Financas.Api.Entities
         /// Propriedade de Navegação. 
         /// Permite que o Entity Framework carregue os dados do objeto Usuario associado.
         /// </summary>
-        public Usuario Usuario { get; set; }
+        public Usuario Usuario { get; set; } = null!;
     }
 }

@@ -39,6 +39,6 @@ namespace Financas.Api.Entities
         /// Propriedade de Navegação: representa a coleção de lançamentos vinculados a este usuário.
         /// Define o relacionamento 1:N (Um usuário para muitos lançamentos).
         /// </summary>
-        public ICollection<Lancamento> Lancamentos { get; set; }
+        public ICollection<Lancamento> Lancamentos { get; set; } = new List<Lancamento>();
     }
 }
