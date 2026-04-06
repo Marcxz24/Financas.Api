@@ -19,6 +19,10 @@ namespace Financas.Api.Data
         // e realizar operações CRUD (Create, Read, Update, Delete) sobre os registros de usuários.
         public DbSet<Usuario> Usuarios { get; set; }
 
+        // Define uma propriedade que representa a tabela "Lancamentos" no banco de dados.
+        // O EF Core usa o tipo 'DbSet<T>' para mapear a classe 'Lancamento' para uma tabela real.
+        public DbSet<Lancamento> Lancamentos { get; set; }
+
         // O método usado para configurar o modelo do banco de dados (mapeamento das entidades)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

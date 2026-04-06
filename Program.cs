@@ -13,6 +13,7 @@ builder.Services.AddDbContext<FinancasDbContext>(options =>
     options.UseMySQL(connectionString ?? throw new Exception("Connection String não encontrada")));
 
 builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<LancamentoService>();
 
 // Add services to the container.
 

@@ -8,19 +8,19 @@ namespace Financas.Api.Services
     public class UsuarioService
     {
         // O serviço de usuário é responsável por lidar com a lógica de negócios relacionada aos usuários, como criação e recuperação de usuários.
-        private readonly FinancasDbContext _FinancasDbContext;
+        private readonly FinancasDbContext _financasDbContext;
 
         // O construtor do serviço recebe o contexto do banco de dados via injeção de dependência, permitindo que o serviço interaja com a base de dados para realizar operações relacionadas aos usuários.
         public UsuarioService(FinancasDbContext dbContext) 
         {
-            _FinancasDbContext = dbContext;
+            _financasDbContext = dbContext;
         }
 
         // O método CriarUsuario é responsável por criar um novo usuário. Ele verifica se o e-mail fornecido já está em uso, e se não estiver, cria um novo registro de usuário no banco de dados. O método retorna um DTO de resposta contendo as informações do usuário criado.
         public async Task<UsuarioResponseDTO> CriarUsuario(CriarUsuarioDTO dto)
         {
             // Antes de criar um novo usuário, o método verifica se o e-mail fornecido já existe no banco de dados. Se o e-mail já estiver em uso, uma exceção é lançada para informar que o e-mail não pode ser utilizado.
-            var emailExistente = await _FinancasDbContext.Usuarios
+            var emailExistente = await _financasDbContext.Usuarios
                 .AnyAsync(u => u.Email == dto.Email);
 
             // Se o e-mail já estiver em uso, uma exceção é lançada para informar que o e-mail não pode ser utilizado.
@@ -42,8 +42,8 @@ namespace Financas.Api.Services
             };
 
             // O novo usuário é adicionado ao contexto do banco de dados e as alterações são salvas. Após a criação do usuário, um DTO de resposta é retornado contendo as informações do usuário criado, como o ID, username e e-mail.
-            _FinancasDbContext.Usuarios.Add(usuario);
-            await _FinancasDbContext.SaveChangesAsync();
+            _financasDbContext.Usuarios.Add(usuario);
+            await _financasDbContext.SaveChangesAsync();
 
             // Após a criação do usuário, um DTO de resposta é retornado contendo as informações do usuário criado, como o ID, username e e-mail.
             return new UsuarioResponseDTO
@@ -57,7 +57,7 @@ namespace Financas.Api.Services
         // O método GetUsuario é responsável por recuperar a lista de usuários do banco de dados. Ele consulta a tabela de usuários, converte os registros em uma lista de DTOs de resposta e retorna essa lista para o cliente.
         public async Task<List<UsuarioResponseDTO>> GetUsuario()
         {
-            var usuarios = await _FinancasDbContext.Usuarios.ToListAsync();
+            var usuarios = await _financasDbContext.Usuarios.ToListAsync();
 
             return usuarios.Select(u => new UsuarioResponseDTO
             {
