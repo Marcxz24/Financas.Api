@@ -64,5 +64,64 @@ namespace Financas.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // Define que este método responde ao verbo HTTP PATCH.
+        // O PATCH é usado para atualizações parciais (mudar apenas alguns campos).
+        // O "{id}" na rota mapeia o ID do lançamento vindo da URL.
+        [HttpPatch("{id}")]
+        [Authorize] // Proteção para garantir que apenas usuários logados acessem.
+        public async Task<ActionResult> AtualizarLancamento(int id, [FromBody] AtualizarLancamentoDTO dto)
+        {
+            try
+            {
+                // 1. Identificação: Extrai o ID do usuário logado do Token JWT.
+                // O "!" confirma que o valor não será nulo, pois o [Authorize] já validou o acesso.
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+                // 2. Processamento: Chama o Service enviando:
+                // - O 'dto': que contém apenas os campos que o usuário quer mudar.
+                // - O 'id': do lançamento que será editado.
+                // - O 'usuarioId': para validar se o usuário é dono deste lançamento.
+                var lancamentoAtualizado = await _lancamentoService.AtualizarLancamento(dto, id, usuarioId);
+
+                // 3. Resposta: Retorna o status 200 (OK) enviando de volta o lançamento já atualizado.
+                // Isso é útil para o Frontend confirmar que os dados foram salvos corretamente.
+                return Ok(lancamentoAtualizado);
+            }
+            catch (Exception ex)
+            {
+                // 4. Erro: Se o registro não existir ou houver falha na permissão, retorna 400 (Bad Request).
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // Define que este método responde ao verbo HTTP DELETE.
+        // O parâmetro "{lancamentoId}" na rota indica que o ID deve vir na URL (ex: api/lancamentos/10).
+        [HttpDelete("{lancamentoId}")]
+        [Authorize] // Garante que apenas usuários autenticados (com token JWT) acessem este endpoint.
+        public async Task<ActionResult> DeletarLancamento(int lancamentoId)
+        {
+            try
+            {
+                // 1. Identificação do Autor: Extrai o ID do usuário logado a partir das Claims do Token.
+                // O "!" ao final indica ao compilador que temos certeza que esse valor não será nulo (devido ao [Authorize]).
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+                // 2. Chamada do Serviço: Repassa a responsabilidade de exclusão para a camada de negócio.
+                // Enviamos o ID do lançamento e o ID do usuário para validar a posse do registro.
+                await _lancamentoService.DeletarLancamento(lancamentoId, usuarioId);
+
+                // 3. Resposta de Sucesso: O 'NoContent()' retorna o status HTTP 204.
+                // É o padrão mais elegante para exclusões, pois indica que a operação foi um sucesso, 
+                // mas não há mais conteúdo para exibir (já que o registro sumiu).
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                // 4. Tratamento de Erro: Se o lançamento não existir ou pertencer a outro usuário,
+                // o erro disparado no Service é capturado aqui e retorna um status 400 (Bad Request).
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
