@@ -38,5 +38,11 @@ namespace Financas.Api.DTOs
         [Required(ErrorMessage = "O tipo de lançamento (Receita/Despesa) é obrigatório")]
         [EnumDataType(typeof(TipoLancamento), ErrorMessage = "Tipo de lançamento inválido")]
         public TipoLancamento Tipo { get; set; }
+
+        /// <summary>
+        /// Identificador da categoria associada ao lançamento.
+        /// Campo opcional — o lançamento pode ser criado sem categoria.
+        /// </summary>
+        public int? CategoriaId { get; set; }
     }
 }

@@ -47,6 +47,11 @@ namespace Financas.Api.Data.Configurations
                 .HasColumnName("usuario_id")
                 .IsRequired();
 
+            // Define o nome da coluna que armazena o ID da categoria associada ao lançamento
+            builder.Property(fkCategory => fkCategory.CategoriaId)
+                .HasColumnName("categoria_id")
+                .IsRequired(false);
+
             // Cria um índice para melhorar performance nas consultas por usuário
             builder.HasIndex(l => l.UsuarioId);
 
@@ -58,6 +63,18 @@ namespace Financas.Api.Data.Configurations
             builder.HasOne(l => l.Usuario)
                 .WithMany(u => u.Lancamentos)
                 .HasForeignKey(l => l.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configuração do Relacionamento (1:N):
+            // HasOne: Define que cada Lançamento está associado a exatamente UMA Categoria.
+            // WithMany: Define que uma Categoria pode estar vinculada a MUITOS Lançamentos.
+            // HasForeignKey: Especifica explicitamente que 'CategoriaId' é a propriedade que faz o vínculo (FK).
+            // OnDelete(DeleteBehavior.Restrict): Aplica uma regra de integridade referencial. 
+            // O banco de dados impedirá a exclusão de uma categoria se houver qualquer lançamento vinculado a ela,
+            // evitando que registros financeiros fiquem sem uma classificação (dados órfãos).
+            builder.HasOne(l => l.Categoria)
+                .WithMany(c => c.Lancamentos)
+                .HasForeignKey(l => l.CategoriaId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

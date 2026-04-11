@@ -33,5 +33,11 @@ namespace Financas.Api.DTOs
         /// Novo tipo (Receita ou Despesa).
         /// </summary>
         public TipoLancamento? Tipo { get; set; }
+
+        /// <summary>
+        /// Identificador da categoria associada ao lançamento.
+        /// Campo opcional — se não informado, mantém a categoria atual.
+        /// </summary>
+        public int? CategoriaId { get; set; }
     }
 }

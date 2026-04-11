@@ -32,5 +32,10 @@ namespace Financas.Api.Entities
         // Atributo de auditoria/temporalidade. Registra o timestamp de persistência 
         // inicial do objeto no banco de dados.
         public DateTime DataCadastro { get; set; }
+
+        // Propriedade de navegação que representa a coleção de lançamentos vinculados a este registro.
+        // O tipo ICollection permite operações de lista (Adicionar, Remover, Contar) 
+        // e é otimizado para o rastreamento de mudanças do EF Core.
+        public ICollection<Lancamento> Lancamentos { get; set; } = new List<Lancamento>();
     }
 }

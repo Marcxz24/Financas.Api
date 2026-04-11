@@ -42,6 +42,20 @@ namespace Financas.Api.Entities
         public int UsuarioId { get; set; }
 
         /// <summary>
+        /// Chave estrangeira (FK) que armazena o identificador da categoria vinculada.
+        /// O uso do tipo 'int?' (nullable) permite que um lançamento exista temporariamente 
+        /// sem uma categoria definida (ex: lançamentos pendentes de classificação).
+        /// </summary>
+        public int? CategoriaId { get; set; }
+
+        /// <summary>
+        /// Propriedade de navegação que permite acessar os dados completos da categoria associada.
+        /// É marcada como anulável para evitar avisos de compilador (null safety) e indicar 
+        /// que o carregamento depende de um JOIN explícito (.Include) na consulta.
+        /// </summary>
+        public Categoria? Categoria { get; set; }
+
+        /// <summary>
         /// Propriedade de Navegação. 
         /// Permite que o Entity Framework carregue os dados do objeto Usuario associado.
         /// </summary>

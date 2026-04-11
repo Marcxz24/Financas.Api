@@ -41,5 +41,15 @@ namespace Financas.Api.DTOs
         /// Descrição textual do tipo de lançamento (ex: "Receita" ou "Despesa").
         /// </summary>
         public string Tipo { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Identificador da categoria associada ao lançamento. Nulo se não categorizado.
+        /// </summary>
+        public int? CategoriaId { get; set; }
+
+        /// <summary>
+        /// Nome da categoria associada. Nulo se o lançamento não tiver categoria.
+        /// </summary>
+        public string? CategoriaNome { get; set; }
     }
 }
