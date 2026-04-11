@@ -53,21 +53,48 @@ namespace Financas.Api.Controllers
             }
         }
 
-        // O método Login é responsável por lidar com as requisições POST para autenticar um usuário. Ele recebe os dados de login no corpo da requisição, chama o serviço de autenticação para realizar a autenticação e retorna a resposta adequada para o cliente.
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginDTO dto)
         {
-            // O método Login é responsável por lidar com as requisições POST para autenticar um usuário. Ele recebe os dados de login no corpo da requisição, chama o serviço de autenticação para realizar a autenticação e retorna a resposta adequada para o cliente. Se a autenticação for bem-sucedida, ele retorna um token JWT para o cliente. Caso contrário, ele retorna uma resposta de erro indicando que as credenciais são inválidas.
             try
             {
-                // O método Login é responsável por lidar com as requisições POST para autenticar um usuário. Ele recebe os dados de login no corpo da requisição, chama o serviço de autenticação para realizar a autenticação e retorna a resposta adequada para o cliente. Se a autenticação for bem-sucedida, ele retorna um token JWT para o cliente. Caso contrário, ele retorna uma resposta de erro indicando que as credenciais são inválidas.
+                // Chama o AuthService para validar as credenciais e gerar o token JWT
                 var token = await _authService.Login(dto);
+
                 return Ok(token);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // E-mail não confirmado
+                return Unauthorized(ex.Message);
             }
             catch
             {
-                // O método Login é responsável por lidar com as requisições POST para autenticar um usuário. Ele recebe os dados de login no corpo da requisição, chama o serviço de autenticação para realizar a autenticação e retorna a resposta adequada para o cliente. Se a autenticação for bem-sucedida, ele retorna um token JWT para o cliente. Caso contrário, ele retorna uma resposta de erro indicando que as credenciais são inválidas.
+                // Credenciais inválidas
                 return Unauthorized("Usuário ou senha inválidos");
+            }
+        }
+
+        [HttpGet("confirmar-email")] // Define a rota específica para a confirmação de e-mail.
+        public async Task<ActionResult> ConfirmarEmail([FromQuery] string token)
+        {
+            try
+            {
+                // 1. Processamento: Envia o token extraído da URL para a lógica de negócio no Service.
+                await _usuarioService.ConfirmarEmail(token);
+
+                // 2. Sucesso: Retorna status 200 (OK) confirmando que a conta foi ativada.
+                return Ok("Email confirmado com sucesso!");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // 3. Erro de autorização: Retorna status 401 (Unauthorized) se o token for inválido ou expirado.
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // 4. Outros erros: Retorna status 400 (Bad Request) para quaisquer outros erros que possam ocorrer.
+                return BadRequest(ex.Message);
             }
         }
     }

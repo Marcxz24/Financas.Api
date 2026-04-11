@@ -36,11 +36,34 @@ namespace Financas.Api.Entities
         public DateTime DataCadastro { get; set; }
 
         /// <summary>
+        /// Indica se o e-mail do usuário foi confirmado.
+        /// Usuários não confirmados não podem fazer login.
+        /// </summary>
+        public bool EmailConfirmado { get; set; } = false;
+
+        /// <summary>
+        /// Token único gerado para confirmação do e-mail.
+        /// Enviado por e-mail após o cadastro.
+        /// </summary>
+        public string? TokenConfirmacao { get; set; }
+
+        /// <summary>
+        /// Data e hora de expiração do token de confirmação.
+        /// Token expirado obriga o usuário a solicitar um novo.
+        /// </summary>
+        public DateTime? TokenExpiracao { get; set; }
+
+        /// <summary>
         /// Propriedade de Navegação: representa a coleção de lançamentos vinculados a este usuário.
         /// Define o relacionamento 1:N (Um usuário para muitos lançamentos).
         /// </summary>
         public ICollection<Lancamento> Lancamentos { get; set; } = new List<Lancamento>();
 
+        /// <summary>
+        /// Propriedade de Navegação: representa a coleção de categorias vinculadas a este usuário.
+        /// Define o relacionamento 1:N (Um usuário para muitas categorias).
+        /// Permite que cada usuário gerencie seu próprio conjunto de categorias de forma isolada.
+        /// </summary>
         public ICollection<Categoria> Categorias { get; set; } = new List<Categoria>();
     }
 }

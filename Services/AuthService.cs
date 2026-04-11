@@ -38,6 +38,9 @@ namespace Financas.Api.Services
             if (!senhaValida)
                 throw new Exception("Senha inválida");
 
+            if (!usuario.EmailConfirmado)
+                throw new UnauthorizedAccessException("Email não confirmado");
+
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),

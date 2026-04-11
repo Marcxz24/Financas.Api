@@ -15,6 +15,7 @@ builder.Services.AddDbContext<FinancasDbContext>(options =>
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<LancamentoService>();
 builder.Services.AddScoped<CategoriaService>();
+builder.Services.AddScoped<EmailService>();
 
 // Add services to the container.
 
