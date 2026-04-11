@@ -80,12 +80,12 @@ namespace Financas.Api.Services
 
             // 2. Validação de existência: Verifica se o registro realmente existe no MySQL
             if (lancamento == null)
-                throw new Exception("Lançamento não encontrado.");
+                throw new KeyNotFoundException("Lançamento não encontrado.");
 
             // 3. Regra de Segurança Crítica: Verifica se o lançamento pertence ao usuário logado.
             // Isso impede que um usuário tente editar o ID de um lançamento de terceiros via API.
             if (lancamento.UsuarioId != usuarioId)
-                throw new Exception("Usuário sem permissão para visualizar lançamento.");
+                throw new UnauthorizedAccessException("Sem permissão para alterar este lançamento.");
 
             // 4. Atualização Parcial: Os IFs abaixo permitem que o usuário envie apenas o que deseja mudar.
             // Se o campo no DTO estiver nulo, o valor atual no banco é preservado.

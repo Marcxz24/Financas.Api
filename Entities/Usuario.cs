@@ -40,5 +40,7 @@ namespace Financas.Api.Entities
         /// Define o relacionamento 1:N (Um usuário para muitos lançamentos).
         /// </summary>
         public ICollection<Lancamento> Lancamentos { get; set; } = new List<Lancamento>();
+
+        public ICollection<Categoria> Categorias { get; set; } = new List<Categoria>();
     }
 }
