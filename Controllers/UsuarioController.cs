@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Security.Claims;
+using System.Transactions;
 
 namespace Financas.Api.Controllers
 {
@@ -152,6 +153,42 @@ namespace Financas.Api.Controllers
             catch (Exception ex)
             {
                 // 5. Falha de Regra de Negócio (400): Disparado se a senha estiver errada ou o e-mail já existir.
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("esqueci-senha")] // Define o verbo POST para iniciar o processo de recuperação (criação de recurso temporário de token).
+        public async Task<ActionResult> SolicitarRedefinicaoSenha([FromBody] EsqueciSenhaDTO dto)
+        {
+            try
+            {
+                // 1. Início do Fluxo: Delega ao serviço a validação do e-mail e geração do token de segurança.
+                await _usuarioService.SolicitarRedefinicaoSenha(dto);
+
+                // 2. Resposta Positiva: Retorna status 200 (OK), confirmando que a instrução de recuperação foi enviada.
+                return Ok("E-mail de redefinição enviado com sucesso!");
+            }
+            catch (Exception ex)
+            {
+                // 3. Falha de Processamento: Retorna status 400 (Bad Request) caso o e-mail não seja encontrado ou ocorra erro no SMTP.
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("redefinir-senha")] // Define o verbo POST para processar a alteração final da senha no servidor.
+        public async Task<ActionResult> RedefinirSenha([FromBody] RedefinirSenhaDTO dto)
+        {
+            try
+            {
+                // 1. Consumação do Token: Envia o DTO com o token e a nova senha para validação e persistência no banco.
+                await _usuarioService.RedefinirSenha(dto);
+
+                // 2. Resposta Positiva: Retorna status 200 (OK) após a senha ser criptografada e o token invalidado com sucesso.
+                return Ok("Senha redefinida com sucesso!");
+            }
+            catch (Exception ex)
+            {
+                // 3. Falha de Validação: Retorna status 400 (Bad Request) se o token estiver expirado ou for inválido.
                 return BadRequest(ex.Message);
             }
         }

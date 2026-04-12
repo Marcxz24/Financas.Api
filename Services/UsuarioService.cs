@@ -94,7 +94,9 @@ namespace Financas.Api.Services
             }).ToList();
         }
 
-        // O método ConfirmarEmail é responsável por confirmar o e-mail do usuário. Ele recebe um token de confirmação, verifica se o token é válido e se ainda está dentro do prazo de validade. Se o token for válido, o status da conta do usuário é atualizado para confirmado, e os campos de segurança relacionados ao token são limpos para impedir reuso. As alterações são então salvas no banco de dados.
+        /// <summary>
+        /// Valida o token de segurança e ativa a conta do usuário ou confirma a alteração de um novo endereço de e-mail.
+        /// </summary>
         public async Task ConfirmarEmail(string token)
         {
             // 1. Busca: Localiza o usuário através do token recebido, garantindo a unicidade da operação.
@@ -123,7 +125,9 @@ namespace Financas.Api.Services
             await _financasDbContext.SaveChangesAsync();
         }
 
-        // O método AtualizarSenha é responsável por permitir que um usuário autenticado atualize sua senha. Ele recebe um DTO contendo a senha atual, a nova senha e a confirmação da nova senha, além do ID do usuário extraído do token JWT. O método verifica se o usuário existe, valida a senha atual, gera um novo hash para a nova senha e atualiza o registro do usuário no banco de dados.
+        /// <summary>
+        /// Altera a senha do usuário autenticado após validar a titularidade por meio da senha atual.
+        /// </summary>
         public async Task AtualizarSenha(AtualizarSenhaDTO dto, int usuarioId)
         {
             // 1. Busca: Localiza o usuário no banco de dados através do ID extraído do Token JWT.
@@ -151,6 +155,9 @@ namespace Financas.Api.Services
             await _financasDbContext.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Inicia o fluxo de troca de e-mail, validando a senha e enviando um link de confirmação para o novo endereço.
+        /// </summary>
         public async Task AtualizarEmail(AtualizarEmailDTO dto, int usuarioId)
         {
             // 1. Busca: Localiza o usuário no banco de dados através do ID autenticado.
@@ -195,6 +202,72 @@ namespace Financas.Api.Services
             // 8. Persistência e Notificação: Salva as alterações no MySQL e dispara o e-mail de forma assíncrona.
             await _financasDbContext.SaveChangesAsync();
             await _emailService.EnviarEmailAsync(dto.NovoEmail, "Confirmação de E-mail - Finanças", corpo);
+        }
+
+        /// <summary>
+        /// Inicia o fluxo de recuperação de senha, gerando um token temporário e enviando o link de redefinição por e-mail.
+        /// </summary>
+        public async Task SolicitarRedefinicaoSenha(EsqueciSenhaDTO dto)
+        {
+            // 1. Localização: Verifica se o e-mail informado pertence a um usuário cadastrado.
+            var usuario = await _financasDbContext.Usuarios
+                .FirstOrDefaultAsync(u => u.Email == dto.Email);
+
+            if (usuario == null)
+                throw new InvalidOperationException("Usuário não encontrado.");
+
+            // 2. Geração de Identificador: Cria um token único (GUID) para validar a solicitação de troca.
+            var token = Guid.NewGuid().ToString("N");
+
+            // 3. Segurança Temporal: Define o token no banco com um prazo curto de validade (1 hora).
+            usuario.TokenConfirmacao = token;
+            usuario.TokenExpiracao = DateTime.UtcNow.AddHours(1);
+
+            // 4. Persistência: Grava o token e a expiração no banco antes de proceder com o envio do e-mail.
+            await _financasDbContext.SaveChangesAsync();
+
+            // 5. Construção da URL: Monta o link que o usuário utilizará no frontend para redefinir a senha.
+            var baseUrl = _configuration["App:BaseUrl"];
+            var linkConfirmacao = $"{baseUrl}/api/usuarios/redefinir-senha?token={token}";
+
+            // 6. Template de Notificação: Define o conteúdo visual e informativo do e-mail de recuperação.
+            var corpo = $@"
+                <h2>Recuperação de Senha</h2>
+                <p>Você solicitou a alteração da sua senha no sistema de Finanças.</p>
+                <p>Clique no link abaixo para prosseguir com a nova senha:</p>
+                <a href='{linkConfirmacao}'>Redefinir Senha</a>
+                <p>Este link é válido por apenas 1 hora.</p>
+                ";
+
+            // 7. Comunicação: Dispara o e-mail para o usuário de forma assíncrona.
+            await _emailService.EnviarEmailAsync(dto.Email, "Alterar Senha - Finanças API", corpo);
+        }
+
+        /// <summary>
+        /// Finaliza o processo de recuperação de conta, validando o token e definindo uma nova senha criptografada.
+        /// </summary>
+        public async Task RedefinirSenha(RedefinirSenhaDTO dto)
+        {
+            // 1. Localização: Busca o usuário que possui o token único gerado para a recuperação.
+            var usuario = await _financasDbContext.Usuarios
+                .FirstOrDefaultAsync(u => u.TokenConfirmacao == dto.Token);
+
+            // 2. Validação de Segurança: Verifica se o token existe e se ainda é válido temporalmente.
+            if (usuario == null || usuario.TokenExpiracao < DateTime.UtcNow)
+                throw new InvalidOperationException("Token de confirmação inválido ou expirado.");
+
+            // 3. Criptografia: Gera um novo Hash seguro para a nova senha escolhida pelo usuário.
+            var novaSenha = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            // 4. Atualização: Substitui a senha antiga pelo novo hash criptografado.
+            usuario.Password = novaSenha;
+
+            // 5. Invalidação: Limpa o token e a expiração para garantir que o link não seja usado novamente.
+            usuario.TokenConfirmacao = null;
+            usuario.TokenExpiracao = null;
+
+            // 6. Persistência: Grava as alterações permanentemente no banco de dados MySQL.
+            await _financasDbContext.SaveChangesAsync();
         }
     }
 }
