@@ -72,5 +72,11 @@ namespace Financas.Api.Entities
         /// Permite que cada usuário gerencie seu próprio conjunto de categorias de forma isolada.
         /// </summary>
         public ICollection<Categoria> Categorias { get; set; } = new List<Categoria>();
+
+        /// <summary>
+        /// Coleção de contas bancárias associadas ao usuário. 
+        /// Permite que um único perfil gerencie múltiplos ativos financeiros (ex: Corrente, Poupança, Investimentos).
+        /// </summary>
+        public ICollection<ContaBancaria> ContasBancarias { get; set; } = new List<ContaBancaria>();
     }
 }

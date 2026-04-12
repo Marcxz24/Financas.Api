@@ -27,6 +27,11 @@ namespace Financas.Api.Data
         // (Data Manipulation Language) específicos para a tabela física 'categorias'.
         public DbSet<Categoria> Categorias { get; set; }
 
+        // Representa a coleção de entidades 'ContaBancaria' no nível de memória.
+        // O EF Core utiliza este DbSet para traduzir operações de código em comandos DML
+        // (Data Manipulation Language) específicos para a tabela física 'contas_bancarias'.
+        public DbSet<ContaBancaria> ContasBancarias { get; set; }
+
         // O método usado para configurar o modelo do banco de dados (mapeamento das entidades)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

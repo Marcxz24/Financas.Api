@@ -1,4 +1,4 @@
-﻿using Financas.Api.DTOs;
+﻿using Financas.Api.DTOs.Usuario;
 using Financas.Api.Entities;
 using Financas.Api.Services;
 using Microsoft.AspNetCore.Authorization;

@@ -1,5 +1,5 @@
 ﻿using Financas.Api.Data;
-using Financas.Api.DTOs;
+using Financas.Api.DTOs.Usuario;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

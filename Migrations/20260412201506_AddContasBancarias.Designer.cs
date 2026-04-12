@@ -3,6 +3,7 @@ using System;
 using Financas.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Financas.Api.Migrations
 {
     [DbContext(typeof(FinancasDbContext))]
-    partial class FinancasDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412201506_AddContasBancarias")]
+    partial class AddContasBancarias
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,8 +100,7 @@ namespace Financas.Api.Migrations
                         .HasColumnName("categoria_id");
 
                     b.Property<int?>("ContaBancariaId")
-                        .HasColumnType("int")
-                        .HasColumnName("conta_bancaria_id");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("Data")
                         .HasColumnType("datetime(6)")
@@ -217,10 +219,9 @@ namespace Financas.Api.Migrations
                         .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Financas.Api.Entities.ContaBancaria", "ContaBancaria")
+                    b.HasOne("Financas.Api.Entities.ContaBancaria", null)
                         .WithMany("Lancamentos")
-                        .HasForeignKey("ContaBancariaId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("ContaBancariaId");
 
                     b.HasOne("Financas.Api.Entities.Usuario", "Usuario")
                         .WithMany("Lancamentos")
@@ -229,8 +230,6 @@ namespace Financas.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Categoria");
-
-                    b.Navigation("ContaBancaria");
 
                     b.Navigation("Usuario");
                 });

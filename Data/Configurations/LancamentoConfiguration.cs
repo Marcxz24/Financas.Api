@@ -52,6 +52,12 @@ namespace Financas.Api.Data.Configurations
                 .HasColumnName("categoria_id")
                 .IsRequired(false);
 
+            // Mapeia a FK da conta bancária. O IsRequired(false) permite que um lançamento 
+            // exista temporariamente sem estar vinculado a uma conta (ex: lançamento pendente).
+            builder.Property(l => l.ContaBancariaId)
+                .HasColumnName("conta_bancaria_id")
+                .IsRequired(false);
+
             // Cria um índice para melhorar performance nas consultas por usuário
             builder.HasIndex(l => l.UsuarioId);
 
@@ -75,6 +81,15 @@ namespace Financas.Api.Data.Configurations
             builder.HasOne(l => l.Categoria)
                 .WithMany(c => c.Lancamentos)
                 .HasForeignKey(l => l.CategoriaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configuração do Relacionamento com Conta Bancária:
+            // Vincula o lançamento à conta de onde o dinheiro saiu ou para onde entrou.
+            // O uso do Restrict garante que você não delete uma conta bancária que ainda possua 
+            // histórico de transações, preservando a rastreabilidade financeira.
+            builder.HasOne(l => l.ContaBancaria)
+                .WithMany(c => c.Lancamentos)
+                .HasForeignKey(l => l.ContaBancariaId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

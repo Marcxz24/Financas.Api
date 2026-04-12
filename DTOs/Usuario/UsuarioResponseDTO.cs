@@ -1,4 +1,4 @@
-﻿namespace Financas.Api.DTOs
+﻿namespace Financas.Api.DTOs.Usuario
 {
     public class UsuarioResponseDTO
     {

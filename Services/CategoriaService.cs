@@ -1,5 +1,5 @@
 ﻿using Financas.Api.Data;
-using Financas.Api.DTOs;
+using Financas.Api.DTOs.Categoria;
 using Financas.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 

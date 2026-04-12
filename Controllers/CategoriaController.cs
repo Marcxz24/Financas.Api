@@ -1,4 +1,4 @@
-﻿using Financas.Api.DTOs;
+﻿using Financas.Api.DTOs.Categoria;
 using Financas.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

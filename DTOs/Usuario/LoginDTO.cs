@@ -1,4 +1,4 @@
-﻿namespace Financas.Api.DTOs
+﻿namespace Financas.Api.DTOs.Usuario
 {
     /// <summary>
     /// Objeto de Transferência de Dados (DTO) para a operação de Login.

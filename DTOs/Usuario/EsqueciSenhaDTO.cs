@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Financas.Api.DTOs
+namespace Financas.Api.DTOs.Usuario
 {
     public class EsqueciSenhaDTO
     {

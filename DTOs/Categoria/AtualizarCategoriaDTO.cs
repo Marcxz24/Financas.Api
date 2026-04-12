@@ -1,7 +1,7 @@
 ﻿using Financas.Api.Entities.Enums;
 using System.ComponentModel.DataAnnotations;
 
-namespace Financas.Api.DTOs
+namespace Financas.Api.DTOs.Categoria
 {
     public class AtualizarCategoriaDTO
     {

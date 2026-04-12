@@ -49,6 +49,12 @@ namespace Financas.Api.Entities
         public int? CategoriaId { get; set; }
 
         /// <summary>
+        /// Identificador da conta bancária à qual este lançamento pertence (Chave Estrangeira).
+        /// É anulável para permitir lançamentos que ainda não foram vinculados a uma conta específica.
+        /// </summary>
+        public int? ContaBancariaId { get; set; }
+
+        /// <summary>
         /// Propriedade de navegação que permite acessar os dados completos da categoria associada.
         /// É marcada como anulável para evitar avisos de compilador (null safety) e indicar 
         /// que o carregamento depende de um JOIN explícito (.Include) na consulta.
@@ -60,5 +66,11 @@ namespace Financas.Api.Entities
         /// Permite que o Entity Framework carregue os dados do objeto Usuario associado.
         /// </summary>
         public Usuario Usuario { get; set; } = null!;
+
+        /// <summary>
+        /// Propriedade de navegação para acessar os detalhes da conta bancária vinculada ao lançamento.
+        /// O uso de 'null!' indica que o EF Core gerencia a instância desta entidade.
+        /// </summary>
+        public ContaBancaria ContaBancaria { get; set; } = null!;
     }
 }
