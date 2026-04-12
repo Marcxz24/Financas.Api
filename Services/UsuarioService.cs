@@ -1,6 +1,7 @@
 ﻿using Financas.Api.Data;
 using Financas.Api.DTOs;
 using Financas.Api.Entities;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -107,11 +108,18 @@ namespace Financas.Api.Services
             }
 
             // 3. Ativação: Altera o status da conta para confirmado e limpa os campos de segurança.
+            if (usuario.EmailPendente != null)
+            {
+                usuario.Email = usuario.EmailPendente; // Atualiza o e-mail para o novo endereço pendente.
+                usuario.EmailPendente = null; // Limpa o campo de e-mail pendente após a confirmação.
+            }
+
+            // 4. Ativação: Marca a conta como confirmada e limpa os campos de segurança.
             usuario.EmailConfirmado = true;
             usuario.TokenConfirmacao = null; // Remove o token para impedir reuso (Segurança).
             usuario.TokenExpiracao = null;
 
-            // 4. Persistência: Atualiza o registro no banco de dados de forma assíncrona.
+            // 5. Persistência: Atualiza o registro no banco de dados de forma assíncrona.
             await _financasDbContext.SaveChangesAsync();
         }
 
@@ -141,6 +149,52 @@ namespace Financas.Api.Services
             // 5. Atualização: Substitui o hash antigo pelo novo e persiste as mudanças no MySQL.
             usuario.Password = novaSenhaHash;
             await _financasDbContext.SaveChangesAsync();
+        }
+
+        public async Task AtualizarEmail(AtualizarEmailDTO dto, int usuarioId)
+        {
+            // 1. Busca: Localiza o usuário no banco de dados através do ID autenticado.
+            var usuario = await _financasDbContext.Usuarios
+                .FirstOrDefaultAsync(u => u.Id == usuarioId);
+
+            if (usuario == null)
+                throw new InvalidOperationException("Usuário não encontrado.");
+
+            // 2. Validação de Segurança: Exige a senha atual para garantir que o dono da conta autorizou a troca.
+            if (!BCrypt.Net.BCrypt.Verify(dto.SenhaAtual, usuario.Password))
+                throw new InvalidOperationException("Senha atual incorreta.");
+
+            // 3. Verificação de Duplicidade: Garante que o novo e-mail já não pertença a outro usuário.
+            var emailExistente = await _financasDbContext.Usuarios
+                .AnyAsync(u => u.Email == dto.NovoEmail);
+
+            if (emailExistente)
+                throw new InvalidOperationException("Este E-mail já está em uso.");
+
+            // 4. Buffer de Segurança: Salva o novo e-mail como pendente para não perder o acesso ao e-mail antigo antes da confirmação.
+            usuario.EmailPendente = dto.NovoEmail;
+
+            // 5. Geração de Token: Cria um identificador único e seguro (GUID) para o link de validação.
+            var token = Guid.NewGuid().ToString("N");
+            usuario.TokenConfirmacao = token;
+            usuario.TokenExpiracao = DateTime.UtcNow.AddHours(24);
+
+            // 6. Construção do Link: Gera a URL que o usuário clicará, baseada no ambiente (Desenvolvimento/Produção).
+            var baseUrl = _configuration["App:BaseUrl"];
+            var linkConfirmacao = $"{baseUrl}/api/usuarios/confirmar-email?token={token}";
+
+            // 7. Template de Comunicação: Estrutura o corpo do e-mail em formato HTML.
+            var corpo = $@"
+                        <h2>Confirmação de Alteração de E-mail</h2>
+                        <p>Você solicitou a alteração do seu e-mail para {dto.NovoEmail}.</p>
+                        <p>Clique no link abaixo para confirmar e ativar o novo endereço:</p>
+                        <a href='{linkConfirmacao}'>Confirmar Novo E-mail</a>
+                        <p>Este link expira em 24 horas.</p>
+                        ";
+
+            // 8. Persistência e Notificação: Salva as alterações no MySQL e dispara o e-mail de forma assíncrona.
+            await _financasDbContext.SaveChangesAsync();
+            await _emailService.EnviarEmailAsync(dto.NovoEmail, "Confirmação de E-mail - Finanças", corpo);
         }
     }
 }

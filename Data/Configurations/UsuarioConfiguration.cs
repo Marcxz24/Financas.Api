@@ -28,6 +28,11 @@ namespace Financas.Api.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(255);
 
+            builder.Property(e => e.EmailPendente)
+                .HasColumnName("email_pendente")
+                .HasMaxLength(255)
+                .IsRequired(false); // Permite null, pois só existe durante o processo de alteração de email.
+
             // Password - Obrigatório
             builder.Property(password => password.Password)
                 .HasColumnName("password")

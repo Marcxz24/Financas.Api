@@ -127,5 +127,33 @@ namespace Financas.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPatch("alterar-email")] // Utiliza o verbo PATCH pois representa uma modificação parcial no recurso do usuário.
+        [Authorize] // Exige que a requisição contenha um Token JWT válido, bloqueando acessos anônimos.
+        public async Task<ActionResult> AlterarEmail([FromBody] AtualizarEmailDTO dto)
+        {
+            try
+            {
+                // 1. Identificação Blindada: Extrai o ID do usuário diretamente das Claims do Token.
+                // Isso garante que a requisição atuará apenas sobre a conta de quem está logado.
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+                // 2. Orquestração: Envia o DTO (com a senha atual e o novo e-mail) e o ID para o Service processar.
+                await _usuarioService.AtualizarEmail(dto, userId);
+
+                // 3. Resposta Positiva: Retorna o status 200 (OK) sinalizando que o processo foi iniciado sem erros.
+                return Ok("E-mail atualizado com sucesso!");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // 4. Falha de Autenticação (401): Disparado caso ocorra algum bloqueio de segurança.
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // 5. Falha de Regra de Negócio (400): Disparado se a senha estiver errada ou o e-mail já existir.
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

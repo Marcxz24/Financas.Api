@@ -26,6 +26,13 @@ namespace Financas.Api.Entities
         public string Email { get; set; } = string.Empty;
 
         /// <summary>
+        /// Armazena o novo endereço de e-mail solicitado pelo usuário.
+        /// O e-mail só será movido para a propriedade principal após a confirmação via token,
+        /// evitando que o usuário perca o acesso à conta por erros de digitação ou e-mails falsos.
+        /// </summary>
+        public string? EmailPendente { get; set; }
+
+        /// <summary>
         /// Senha do usuário (idealmente armazenada como Hash no banco de dados).
         /// </summary>
         public string Password { get; set; } = string.Empty;
