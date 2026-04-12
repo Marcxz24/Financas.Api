@@ -3,6 +3,8 @@ using Financas.Api.Entities;
 using Financas.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Security.Claims;
 
 namespace Financas.Api.Controllers
 {
@@ -94,6 +96,34 @@ namespace Financas.Api.Controllers
             catch (Exception ex)
             {
                 // 4. Outros erros: Retorna status 400 (Bad Request) para quaisquer outros erros que possam ocorrer.
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPatch("alterar-senha")] // Define o verbo HTTP PATCH para atualização parcial de dados do usuário.
+        [Authorize] // Bloqueia o acesso de usuários não autenticados, exigindo um Token JWT válido.
+        public async Task<ActionResult> AlterarSenha([FromBody] AtualizarSenhaDTO dto)
+        {
+            try
+            {
+                // 1. Identificação Segura: Extrai o ID do usuário diretamente das Claims do Token.
+                // Isso impede que um usuário tente alterar a senha de outra conta.
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+                // 2. Execução: Envia os dados de senha e o ID validado para a camada de serviço.
+                await _usuarioService.AtualizarSenha(dto, userId);
+
+                // 3. Sucesso: Retorna status 200 (OK) com uma mensagem de confirmação.
+                return Ok("Senha atualizada com sucesso!");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                // 4. Erro de Autenticação (401): Capturado caso haja falha específica de permissão.
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // 5. Erro de Negócio (400): Capturado caso a senha atual esteja incorreta ou o DTO seja inválido.
                 return BadRequest(ex.Message);
             }
         }

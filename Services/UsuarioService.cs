@@ -114,5 +114,33 @@ namespace Financas.Api.Services
             // 4. Persistência: Atualiza o registro no banco de dados de forma assíncrona.
             await _financasDbContext.SaveChangesAsync();
         }
+
+        // O método AtualizarSenha é responsável por permitir que um usuário autenticado atualize sua senha. Ele recebe um DTO contendo a senha atual, a nova senha e a confirmação da nova senha, além do ID do usuário extraído do token JWT. O método verifica se o usuário existe, valida a senha atual, gera um novo hash para a nova senha e atualiza o registro do usuário no banco de dados.
+        public async Task AtualizarSenha(AtualizarSenhaDTO dto, int usuarioId)
+        {
+            // 1. Busca: Localiza o usuário no banco de dados através do ID extraído do Token JWT.
+            var usuario = await _financasDbContext.Usuarios
+                .FirstOrDefaultAsync(u => u.Id == usuarioId);
+
+            // 2. Verificação de Existência: Garante que o usuário logado ainda possui um registro ativo.
+            if (usuario == null)
+            {
+                throw new InvalidOperationException("Usuário não encontrado.");
+            }
+
+            // 3. Validação de Segurança: Compara a senha atual enviada com o Hash armazenado no banco.
+            // O BCrypt.Verify é essencial para descriptografar e validar o hash com segurança.
+            if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, usuario.Password))
+            {
+                throw new InvalidOperationException("Senha atual incorreta.");
+            }
+
+            // 4. Criptografia: Gera um novo Salt e Hash para a nova senha antes de salvar.
+            var novaSenhaHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            // 5. Atualização: Substitui o hash antigo pelo novo e persiste as mudanças no MySQL.
+            usuario.Password = novaSenhaHash;
+            await _financasDbContext.SaveChangesAsync();
+        }
     }
 }
