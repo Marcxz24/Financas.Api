@@ -16,6 +16,7 @@ builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<LancamentoService>();
 builder.Services.AddScoped<CategoriaService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<ContaBancariaService>();
 
 // Add services to the container.
 
