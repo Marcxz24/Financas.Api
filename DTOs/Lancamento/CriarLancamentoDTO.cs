@@ -44,5 +44,11 @@ namespace Financas.Api.DTOs.Lancamento
         /// Campo opcional — o lançamento pode ser criado sem categoria.
         /// </summary>
         public int? CategoriaId { get; set; }
+
+        /// <summary>
+        /// Identificador da conta bancária onde a movimentação financeira ocorreu.
+        /// Sendo opcional (int?), permite flexibilidade caso o lançamento ainda não esteja vinculado a uma conta.
+        /// </summary>
+        public int? ContaBancariaID { get; set; }
     }
 }

@@ -51,5 +51,17 @@ namespace Financas.Api.DTOs.Lancamento
         /// Nome da categoria associada. Nulo se o lançamento não tiver categoria.
         /// </summary>
         public string? CategoriaNome { get; set; }
+
+        /// <summary>
+        /// Identificador da conta bancária de origem ou destino do lançamento.
+        /// Pode ser nulo caso o lançamento não esteja vinculado a uma conta específica.
+        /// </summary>
+        public int? ContaBancariaId { get; set; }
+
+        /// <summary>
+        /// Nome descritivo da conta bancária (ex: "Carteira" ou "Banco Inter").
+        /// Utilizado para exibição direta no front-end sem necessidade de consultas extras.
+        /// </summary>
+        public string? ContaBancariaNome { get; set; }
     }
 }

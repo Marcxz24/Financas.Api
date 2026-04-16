@@ -39,6 +39,15 @@ namespace Financas.Api.Services
                     throw new KeyNotFoundException("Categoria não encontrada ou não pertence ao usuário.");
             }
 
+            if (dto.ContaBancariaID != null)
+            {
+                var contaBancaria = await _financasDbContext.ContasBancarias
+                    .FirstOrDefaultAsync(c => c.Id == dto.ContaBancariaID && c.UsuarioId == usuarioId);
+
+                if (contaBancaria == null)
+                    throw new KeyNotFoundException("Conta bancária não encontrada ou não pertence ao usuário.");
+            }
+
             // 2. Mapeamento: Transforma o DTO (dados que vieram da web) na Entidade (classe que vai pro banco)
             var lancamento = new Lancamento
             {
@@ -47,7 +56,8 @@ namespace Financas.Api.Services
                 Data = dto.Data,
                 Tipo = dto.Tipo,
                 UsuarioId = usuarioId, // Vincula o lançamento ao ID do usuário logado
-                CategoriaId = dto.CategoriaId // Pode ser nulo, o que é permitido pela configuração do banco
+                CategoriaId = dto.CategoriaId, // Pode ser nulo, o que é permitido pela configuração do banco
+                ContaBancariaId = dto.ContaBancariaID // Pode ser nulo, o que é permitido pela configuração do banco
             };
 
             // 3. Persistência: Adiciona o objeto ao rastreamento do EF Core e salva no MySQL
@@ -64,7 +74,9 @@ namespace Financas.Api.Services
                 Data = lancamento.Data,
                 Tipo = lancamento.Tipo.ToString(), // Converte o Enum de Tipo para String
                 CategoriaId = lancamento.CategoriaId,
-                CategoriaNome = lancamento.Categoria?.Nome
+                CategoriaNome = lancamento.Categoria?.Nome,
+                ContaBancariaId = lancamento.ContaBancariaId,
+                ContaBancariaNome = lancamento.ContaBancaria?.Nome
             };
         }
 
@@ -74,6 +86,7 @@ namespace Financas.Api.Services
             // Busca no banco apenas os lançamentos que pertencem ao usuário (Filtro UsuarioId)
             var lancamentos = await _financasDbContext.Lancamentos
                 .Include(l => l.Categoria) // Inclui os dados da categoria relacionada, se houver
+                .Include(c => c.ContaBancaria) // Inclui os dados da conta bancária relacionada, se houver
                 .Where(l => l.UsuarioId == usuarioId)
                 .ToListAsync();
 
@@ -87,7 +100,9 @@ namespace Financas.Api.Services
                 Data = l.Data,
                 Tipo = l.Tipo.ToString(),
                 CategoriaId = l.CategoriaId,
-                CategoriaNome = l.Categoria?.Nome
+                CategoriaNome = l.Categoria?.Nome,
+                ContaBancariaId = l.ContaBancariaId,
+                ContaBancariaNome = l.ContaBancaria?.Nome
             }).ToList();
         }
 
@@ -96,6 +111,7 @@ namespace Financas.Api.Services
             // 1. Busca o lançamento no banco de dados pelo ID fornecido
             var lancamento = await _financasDbContext.Lancamentos
                 .Include(l => l.Categoria) // Inclui os dados da categoria para possível retorno no DTO
+                .Include(c => c.ContaBancaria) // Inclui os dados da conta bancária para possível retorno no DTO
                 .FirstOrDefaultAsync(l => l.Id == lancamentoId);
 
             // 2. Validação de existência: Verifica se o registro realmente existe no MySQL
@@ -134,8 +150,23 @@ namespace Financas.Api.Services
                     throw new KeyNotFoundException("Categoria não encontrada ou não pertence ao usuário.");
 
                 lancamento.CategoriaId = dto.CategoriaId; // Permite atualizar a categoria, inclusive para null (sem categoria)
+            
+                lancamento.Categoria = categoria; // Atualiza a referência da categoria para garantir que os dados relacionados sejam carregados corretamente no retorno do DTO
             }
 
+            if (dto.ContaBancariaId != null)
+            {
+                var contaBancaria = await _financasDbContext.ContasBancarias
+                    .FirstOrDefaultAsync(c => c.Id == dto.ContaBancariaId && c.UsuarioId == usuarioId);
+
+                if (contaBancaria == null)
+                    throw new KeyNotFoundException("Conta bancária não encontrada ou não pertence ao usuário.");
+
+                lancamento.ContaBancariaId = dto.ContaBancariaId; // Permite atualizar a conta bancária, inclusive para null (sem conta)
+            
+                lancamento.ContaBancaria = contaBancaria; // Atualiza a referência da conta bancária para garantir que os dados relacionados sejam carregados corretamente no retorno do DTO
+            }
+                
             // 5. Persistência: O EF Core detecta que o objeto 'lancamento' foi modificado e gera o comando UPDATE
             await _financasDbContext.SaveChangesAsync();
 
@@ -149,7 +180,9 @@ namespace Financas.Api.Services
                 Tipo = lancamento.Tipo.ToString(), // Converte o Enum para string (ex: "Receita")
                 Data = lancamento.Data,
                 CategoriaId = lancamento.CategoriaId,
-                CategoriaNome = lancamento.Categoria?.Nome
+                CategoriaNome = lancamento.Categoria?.Nome,
+                ContaBancariaId = lancamento.ContaBancariaId,
+                ContaBancariaNome = lancamento.ContaBancaria?.Nome
             };
         }
 

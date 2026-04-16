@@ -39,5 +39,11 @@ namespace Financas.Api.DTOs.Lancamento
         /// Campo opcional — se não informado, mantém a categoria atual.
         /// </summary>
         public int? CategoriaId { get; set; }
+
+        /// <summary>
+        /// Identificador da conta bancária vinculada ao lançamento.
+        /// Campo opcional — se nulo, a conta bancária original do registro será preservada.
+        /// </summary>
+        public int? ContaBancariaId { get; set; }
     }
 }
