@@ -2,6 +2,7 @@
 using Financas.Api.DTOs.Lancamento;
 using Financas.Api.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Transactions;
 
 namespace Financas.Api.Services
 {
@@ -29,6 +30,9 @@ namespace Financas.Api.Services
             if (dto.CategoriaId == 0)
                 dto.CategoriaId = null; // Permite que o usuário envie "0" para criar um lançamento sem categoria
 
+            if (dto.ContaBancariaId == 0)
+                dto.ContaBancariaId = null; // Permite que o usuário envie "0" para criar um lançamento sem conta bancária
+
             if (dto.CategoriaId != null)
             {
                 // Verifica se a categoria existe e pertence ao usuário
@@ -39,10 +43,10 @@ namespace Financas.Api.Services
                     throw new KeyNotFoundException("Categoria não encontrada ou não pertence ao usuário.");
             }
 
-            if (dto.ContaBancariaID != null)
+            if (dto.ContaBancariaId != null)
             {
                 var contaBancaria = await _financasDbContext.ContasBancarias
-                    .FirstOrDefaultAsync(c => c.Id == dto.ContaBancariaID && c.UsuarioId == usuarioId);
+                    .FirstOrDefaultAsync(c => c.Id == dto.ContaBancariaId && c.UsuarioId == usuarioId);
 
                 if (contaBancaria == null)
                     throw new KeyNotFoundException("Conta bancária não encontrada ou não pertence ao usuário.");
@@ -57,7 +61,7 @@ namespace Financas.Api.Services
                 Tipo = dto.Tipo,
                 UsuarioId = usuarioId, // Vincula o lançamento ao ID do usuário logado
                 CategoriaId = dto.CategoriaId, // Pode ser nulo, o que é permitido pela configuração do banco
-                ContaBancariaId = dto.ContaBancariaID // Pode ser nulo, o que é permitido pela configuração do banco
+                ContaBancariaId = dto.ContaBancariaId // Pode ser nulo, o que é permitido pela configuração do banco
             };
 
             // 3. Persistência: Adiciona o objeto ao rastreamento do EF Core e salva no MySQL
@@ -196,13 +200,13 @@ namespace Financas.Api.Services
             // 2. Verificação de existência
             // Evita erro de referência nula caso o ID não exista no MySQL
             if (lancamento == null)
-                throw new Exception("Lançamento não encontrado.");
+                throw new KeyNotFoundException("Lançamento não encontrado.");
 
             // 3. Barreira de Segurança:
             // Mesmo que alguém saiba o ID de um lançamento, ele só consegue deletar
             // se o UsuarioId do registro for igual ao ID extraído do Token JWT.
             if (lancamento.UsuarioId != usuarioId)
-                throw new Exception("Não é possível excluir um lançamento de outro usuário.");
+                throw new UnauthorizedAccessException("Não é possível excluir um lançamento de outro usuário.");
 
             // 4. Marcação para remoção:
             // O método .Remove() avisa ao Entity Framework que este objeto deve ser deletado

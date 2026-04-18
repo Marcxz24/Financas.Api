@@ -49,6 +49,6 @@ namespace Financas.Api.DTOs.Lancamento
         /// Identificador da conta bancária onde a movimentação financeira ocorreu.
         /// Sendo opcional (int?), permite flexibilidade caso o lançamento ainda não esteja vinculado a uma conta.
         /// </summary>
-        public int? ContaBancariaID { get; set; }
+        public int? ContaBancariaId { get; set; }
     }
 }
