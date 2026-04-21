@@ -1,8 +1,8 @@
 ﻿using Financas.Api.Data;
 using Financas.Api.DTOs.Lancamento;
 using Financas.Api.Entities;
+using Financas.Api.Entities.Enums;
 using Microsoft.EntityFrameworkCore;
-using System.Transactions;
 
 namespace Financas.Api.Services
 {
@@ -15,6 +15,58 @@ namespace Financas.Api.Services
         public LancamentoService(FinancasDbContext financasDbContext)
         {
             _financasDbContext = financasDbContext;
+        }
+
+        // Este método aplica uma alteração financeira ao saldo atual da conta
+        public void AplicarValor(ContaBancaria conta, decimal valor, TipoLancamento tipo)
+        {
+            if (conta == null)
+                throw new ArgumentNullException(nameof(conta), "A conta bancária não pode ser nula.");
+
+            if (valor <= 0)
+                throw new ArgumentException("O valor deve ser maior que zero.");
+
+            // Verifica a direção do fluxo financeiro através do Enum 'TipoLancamento'
+            if (tipo == TipoLancamento.Receita)
+            {
+                // Algoritmo: Se for entrada (Receita), utiliza o operador de atribuição aditiva
+                // O valor é somado ao saldo existente na memória da entidade
+                conta.Saldo += valor;
+            }
+            else
+            {
+                // Antes de subtrair, verifica se o saldo é suficiente para cobrir a despesa.
+                if (conta.Saldo < valor)
+                    throw new InvalidOperationException("Saldo insuficiente.");
+
+                // Algoritmo: Se for saída (Despesa), utiliza o operador de atribuição subtrativa
+                // O valor é deduzido do saldo atual da conta
+                conta.Saldo -= valor;
+            }
+        }
+
+        // Este método reverte uma operação financeira anterior para restaurar o saldo original
+        public void EstornarValor(ContaBancaria conta, decimal valor, TipoLancamento tipo)
+        {
+            if (conta == null)
+                throw new ArgumentNullException(nameof(conta), "A conta bancária não pode ser nula.");
+
+            if (valor <= 0)
+                throw new ArgumentException("O valor deve ser maior que zero.");
+
+            // O algoritmo de estorno inverte a lógica do método AplicarValor
+            if (tipo == TipoLancamento.Receita)
+            {
+                // Algoritmo: Para cancelar uma Receita que já foi somada, subtraímos o valor
+                // Isso devolve o saldo ao estado anterior à criação do lançamento
+                conta.Saldo -= valor;
+            }
+            else
+            {
+                // Algoritmo: Para cancelar uma Despesa que já foi subtraída, somamos o valor de volta
+                // Isso recompõe o saldo que havia sido reduzido indevidamente ou que será editado
+                conta.Saldo += valor;
+            }
         }
 
         // Método para criar um novo lançamento (receita ou despesa)
@@ -43,9 +95,11 @@ namespace Financas.Api.Services
                     throw new KeyNotFoundException("Categoria não encontrada ou não pertence ao usuário.");
             }
 
+            ContaBancaria? contaBancaria = null;
+
             if (dto.ContaBancariaId != null)
             {
-                var contaBancaria = await _financasDbContext.ContasBancarias
+                contaBancaria = await _financasDbContext.ContasBancarias
                     .FirstOrDefaultAsync(c => c.Id == dto.ContaBancariaId && c.UsuarioId == usuarioId);
 
                 if (contaBancaria == null)
@@ -63,6 +117,14 @@ namespace Financas.Api.Services
                 CategoriaId = dto.CategoriaId, // Pode ser nulo, o que é permitido pela configuração do banco
                 ContaBancariaId = dto.ContaBancariaId // Pode ser nulo, o que é permitido pela configuração do banco
             };
+
+            // Se houver uma conta vinculada, atualiza o saldo em memória
+            if (contaBancaria != null)
+            {
+                // Soma se for Receita ou subtrai se for Despesa, 
+                // preparando a alteração para ser salva no banco de dados.
+                AplicarValor(contaBancaria, dto.Valor, dto.Tipo);
+            }
 
             // 3. Persistência: Adiciona o objeto ao rastreamento do EF Core e salva no MySQL
             _financasDbContext.Lancamentos.Add(lancamento);
@@ -127,6 +189,16 @@ namespace Financas.Api.Services
             if (lancamento.UsuarioId != usuarioId)
                 throw new UnauthorizedAccessException("Sem permissão para alterar este lançamento.");
 
+            if (dto.ContaBancariaId.HasValue && dto.ContaBancariaId != lancamento.ContaBancariaId)
+                throw new InvalidOperationException("Não é permitido alterar a conta bancária de um lançamento. Delete e recrie.");
+
+            if (dto.Valor.HasValue && dto.Valor <= 0)
+                throw new ArgumentException("O valor deve ser maior que zero.");
+
+            var contaAntiga = lancamento.ContaBancaria; // Armazena a conta antiga para estorno caso seja necessário
+            var valorAntigo = lancamento.Valor; // Armazena o valor antigo para estorno caso seja necessário
+            var tipoAntigo = lancamento.Tipo; // Armazena o tipo antigo para estorno caso seja necessário
+
             // 4. Atualização Parcial: Os IFs abaixo permitem que o usuário envie apenas o que deseja mudar.
             // Se o campo no DTO estiver nulo, o valor atual no banco é preservado.
 
@@ -154,25 +226,29 @@ namespace Financas.Api.Services
                     throw new KeyNotFoundException("Categoria não encontrada ou não pertence ao usuário.");
 
                 lancamento.CategoriaId = dto.CategoriaId; // Permite atualizar a categoria, inclusive para null (sem categoria)
-            
+
                 lancamento.Categoria = categoria; // Atualiza a referência da categoria para garantir que os dados relacionados sejam carregados corretamente no retorno do DTO
             }
 
-            if (dto.ContaBancariaId != null)
-            {
-                var contaBancaria = await _financasDbContext.ContasBancarias
-                    .FirstOrDefaultAsync(c => c.Id == dto.ContaBancariaId && c.UsuarioId == usuarioId);
-
-                if (contaBancaria == null)
-                    throw new KeyNotFoundException("Conta bancária não encontrada ou não pertence ao usuário.");
-
-                lancamento.ContaBancariaId = dto.ContaBancariaId; // Permite atualizar a conta bancária, inclusive para null (sem conta)
-            
-                lancamento.ContaBancaria = contaBancaria; // Atualiza a referência da conta bancária para garantir que os dados relacionados sejam carregados corretamente no retorno do DTO
-            }
-                
             // 5. Persistência: O EF Core detecta que o objeto 'lancamento' foi modificado e gera o comando UPDATE
-            await _financasDbContext.SaveChangesAsync();
+            using var transaction = await _financasDbContext.Database.BeginTransactionAsync(); // Inicia uma transação para garantir a atomicidade das operações
+
+            try
+            {
+                if (contaAntiga != null)
+                    EstornarValor(contaAntiga, valorAntigo, tipoAntigo); // Reverte o valor antigo para restaurar o saldo da conta bancária antes de aplicar a nova alteração
+
+                if (lancamento.ContaBancaria != null)
+                    AplicarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Aplica o novo valor para atualizar o saldo da conta bancária com a alteração feita
+
+                await _financasDbContext.SaveChangesAsync(); // Salva as alterações no banco de dados, incluindo o lançamento e a conta bancária (se houver)
+                await transaction.CommitAsync(); // Confirma a transação, garantindo que todas as alterações sejam aplicadas no banco de dados
+            }
+            catch
+            {
+                await transaction.RollbackAsync(); // Em caso de erro, desfaz todas as alterações
+                throw; // Relança a exceção para que o controlador possa lidar com ela adequadamente
+            }
 
             // 6. Retorno: Devolve o objeto atualizado formatado para a resposta da API (DTO)
             return new LancamentoResponseDTO
@@ -207,6 +283,9 @@ namespace Financas.Api.Services
             // se o UsuarioId do registro for igual ao ID extraído do Token JWT.
             if (lancamento.UsuarioId != usuarioId)
                 throw new UnauthorizedAccessException("Não é possível excluir um lançamento de outro usuário.");
+
+            if (lancamento.ContaBancaria != null)
+                EstornarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Reverte o valor para restaurar o saldo da conta bancária antes de excluir o lançamento
 
             // 4. Marcação para remoção:
             // O método .Remove() avisa ao Entity Framework que este objeto deve ser deletado
