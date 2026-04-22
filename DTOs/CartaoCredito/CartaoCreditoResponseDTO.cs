@@ -1,0 +1,40 @@
+﻿namespace Financas.Api.DTOs.CartaoCredito
+{
+    /// <summary>
+    /// DTO de resposta que representa os dados de um Cartão de Crédito para o Front-end.
+    /// Retorna as informações formatadas e prontas para exibição.
+    /// </summary>
+    public class CartaoCreditoResponseDTO
+    {
+        /// <summary>
+        /// Identificador único do cartão.
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Identificador do usuário dono do cartão.
+        /// </summary>
+        public int UsuarioId { get; set; }
+
+        /// <summary>
+        /// Nome do cartão (ex: Nubank, Inter).
+        /// </summary>
+        public string Nome { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Limite total de crédito disponível.
+        /// </summary>
+        public decimal Limite { get; set; }
+
+        /// <summary>
+        /// Dia do mês em que a fatura fecha.
+        /// </summary>
+        public int DiaFechamento { get; set; }
+
+        /// <summary>
+        /// Representação textual do status do cartão (ex: "Ativo", "Bloqueado").
+        /// Facilitando a leitura pelo Front-end sem necessidade de conversão.
+        /// </summary>
+        public string Status { get; set; } = string.Empty;
+    }
+}

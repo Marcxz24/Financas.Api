@@ -18,7 +18,7 @@ namespace Financas.Api.Services
         }
 
         // Este método aplica uma alteração financeira ao saldo atual da conta
-        public void AplicarValor(ContaBancaria conta, decimal valor, TipoLancamento tipo)
+        private void AplicarValor(ContaBancaria conta, decimal valor, TipoLancamento tipo)
         {
             if (conta == null)
                 throw new ArgumentNullException(nameof(conta), "A conta bancária não pode ser nula.");
@@ -46,7 +46,7 @@ namespace Financas.Api.Services
         }
 
         // Este método reverte uma operação financeira anterior para restaurar o saldo original
-        public void EstornarValor(ContaBancaria conta, decimal valor, TipoLancamento tipo)
+        private void EstornarValor(ContaBancaria conta, decimal valor, TipoLancamento tipo)
         {
             if (conta == null)
                 throw new ArgumentNullException(nameof(conta), "A conta bancária não pode ser nula.");
@@ -217,6 +217,10 @@ namespace Financas.Api.Services
             if (dto.Data != null)
                 lancamento.Data = dto.Data.Value;
 
+            var houveMudancaFincaneira = 
+                lancamento.Valor != valorAntigo ||
+                lancamento.Tipo != tipoAntigo;
+
             if (dto.CategoriaId != null)
             {
                 var categoria = await _financasDbContext.Categorias
@@ -235,11 +239,14 @@ namespace Financas.Api.Services
 
             try
             {
-                if (contaAntiga != null)
-                    EstornarValor(contaAntiga, valorAntigo, tipoAntigo); // Reverte o valor antigo para restaurar o saldo da conta bancária antes de aplicar a nova alteração
+                if (houveMudancaFincaneira)
+                {
+                    if (contaAntiga != null)
+                        EstornarValor(contaAntiga, valorAntigo, tipoAntigo); // Reverte o valor antigo para restaurar o saldo da conta bancária antes de aplicar a nova alteração
 
-                if (lancamento.ContaBancaria != null)
-                    AplicarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Aplica o novo valor para atualizar o saldo da conta bancária com a alteração feita
+                    if (lancamento.ContaBancaria != null)
+                        AplicarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Aplica o novo valor para atualizar o saldo da conta bancária com a alteração feita   
+                }
 
                 await _financasDbContext.SaveChangesAsync(); // Salva as alterações no banco de dados, incluindo o lançamento e a conta bancária (se houver)
                 await transaction.CommitAsync(); // Confirma a transação, garantindo que todas as alterações sejam aplicadas no banco de dados
@@ -271,6 +278,7 @@ namespace Financas.Api.Services
             // 1. Busca o lançamento no banco de dados
             // É necessário buscar o objeto completo para que o EF saiba o que remover
             var lancamento = await _financasDbContext.Lancamentos
+                .Include(l => l.ContaBancaria)
                 .FirstOrDefaultAsync(l => l.Id == lancamentoId);
 
             // 2. Verificação de existência
@@ -284,16 +292,27 @@ namespace Financas.Api.Services
             if (lancamento.UsuarioId != usuarioId)
                 throw new UnauthorizedAccessException("Não é possível excluir um lançamento de outro usuário.");
 
-            if (lancamento.ContaBancaria != null)
-                EstornarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Reverte o valor para restaurar o saldo da conta bancária antes de excluir o lançamento
+            using var transaction = await _financasDbContext.Database.BeginTransactionAsync(); // Inicia uma transação para garantir a atomicidade das operações
 
-            // 4. Marcação para remoção:
-            // O método .Remove() avisa ao Entity Framework que este objeto deve ser deletado
-            _financasDbContext.Lancamentos.Remove(lancamento);
+            try
+            {
+                if (lancamento.ContaBancaria != null)
+                    EstornarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Reverte o valor para restaurar o saldo da conta bancária antes de excluir o lançamento
 
-            // 5. Execução no Banco:
-            // Aqui o EF Core gera o comando SQL "DELETE FROM Lancamentos WHERE Id = ..."
-            await _financasDbContext.SaveChangesAsync();
+                // 4. Marcação para remoção:
+                // O método .Remove() avisa ao Entity Framework que este objeto deve ser deletado
+                _financasDbContext.Lancamentos.Remove(lancamento);
+
+                // 5. Execução no Banco:
+                // Aqui o EF Core gera o comando SQL "DELETE FROM Lancamentos WHERE Id = ..."
+                await _financasDbContext.SaveChangesAsync();
+                await transaction.CommitAsync(); // Confirma a transação, garantindo que todas as alterações sejam aplicadas no banco de dados
+            }
+            catch
+            {
+                await transaction.RollbackAsync(); // Em caso de erro, desfaz todas as alterações
+                throw; // Relança a exceção para que o controlador possa lidar com ela adequadamente
+            }
         }
     }
 }
