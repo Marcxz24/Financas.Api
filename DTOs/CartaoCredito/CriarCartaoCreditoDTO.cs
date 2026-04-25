@@ -31,5 +31,12 @@ namespace Financas.Api.DTOs.CartaoCredito
         [Required(ErrorMessage = "O dia de fechamento é obrigatório.")]
         [Range(1, 31, ErrorMessage = "O Dia do Fechamento deve ser entre 1 e 31.")]
         public int DiaFechamento { get; set; }
+
+        /// <summary>
+        /// Dia do mês (1 a 31) em que a fatura "vira". 
+        /// </summary>
+        [Required(ErrorMessage = "O dia de vencimento é obrigatório.")]
+        [Range(1, 31, ErrorMessage = "O Dia do Vencimento deve ser entre 1 e 31.")]
+        public int DiaVencimento { get; set; }
     }
 }

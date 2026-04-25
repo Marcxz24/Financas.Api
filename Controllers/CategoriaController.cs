@@ -24,7 +24,7 @@ namespace Financas.Api.Controllers
             _categoriaService = categoriaService;
         }
 
-        [HttpPost] // Define que o método responde apenas ao verbo HTTP POST (criação).
+        [HttpPost("criar-categoria")] // Define que o método responde apenas ao verbo HTTP POST (criação).
         [Authorize] // Middleware de segurança: valida o Token JWT antes de permitir a execução do código.
         public async Task<ActionResult<CategoriaResponseDTO>> CriarCategoria([FromBody] CriarCategoriaDTO dto)
         {
@@ -51,7 +51,7 @@ namespace Financas.Api.Controllers
             }
         }
 
-        [HttpGet] // Define que este método responde apenas ao verbo HTTP GET (leitura).
+        [HttpGet("listar-categorias")] // Define que este método responde apenas ao verbo HTTP GET (leitura).
         [Authorize] // Bloqueia o acesso de usuários não autenticados via middleware JWT.
         public async Task<ActionResult<IEnumerable<CategoriaResponseDTO>>> GetCategorias()
         {
@@ -75,7 +75,7 @@ namespace Financas.Api.Controllers
             }
         }
 
-        [HttpPatch("{id}")] // Verbo para atualizações parciais. O '{id}' é um parâmetro de rota.
+        [HttpPatch("atualizar-categorias/{id}")] // Verbo para atualizações parciais. O '{id}' é um parâmetro de rota.
         [Authorize] // Bloqueia o acesso de usuários não autenticados.
         public async Task<ActionResult<CategoriaResponseDTO>> AtualizarCategoria([FromBody] AtualizarCategoriaDTO dto, int id)
         {
@@ -108,7 +108,7 @@ namespace Financas.Api.Controllers
             }
         }
 
-        [HttpDelete("{id}")] // Define o verbo HTTP DELETE e captura o ID do recurso na URL.
+        [HttpDelete("deletar-categorias/{id}")] // Define o verbo HTTP DELETE e captura o ID do recurso na URL.
         [Authorize] // Exige autenticação JWT.
         public async Task<ActionResult> DeletarCategoria(int id)
         {

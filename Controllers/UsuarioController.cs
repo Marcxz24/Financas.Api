@@ -28,7 +28,7 @@ namespace Financas.Api.Controllers
         }
 
         // O método GetUsuarios é responsável por lidar com as requisições GET para recuperar a lista de usuários. Ele chama o serviço de usuário para obter os usuários e retorna a resposta adequada para o cliente.
-        [HttpGet]
+        [HttpGet("listar-usuarios")]
         [Authorize] // O atributo [Authorize] é utilizado para proteger o endpoint de recuperação de usuários, garantindo que apenas usuários autenticados possam acessar essa funcionalidade. Ele verifica se o usuário está autenticado antes de permitir o acesso ao método GetUsuarios, garantindo a segurança dos dados dos usuários.
         public async Task<ActionResult<IEnumerable<UsuarioResponseDTO>>> GetUsuarios()
         {
@@ -38,7 +38,7 @@ namespace Financas.Api.Controllers
         }
 
         // O método CriarUsuario é responsável por lidar com as requisições POST para criar um novo usuário. Ele recebe os dados do usuário no corpo da requisição, chama o serviço de usuário para criar o usuário e retorna a resposta adequada para o cliente.
-        [HttpPost]
+        [HttpPost("criar-usuario")]
         public async Task<ActionResult<UsuarioResponseDTO>> CriarUsuario([FromBody] CriarUsuarioDTO dto)
         {
             // O método CriarUsuario é responsável por lidar com as requisições POST para criar um novo usuário. Ele recebe os dados do usuário no corpo da requisição, chama o serviço de usuário para criar o usuário e retorna a resposta adequada para o cliente.

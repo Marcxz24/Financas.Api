@@ -28,6 +28,12 @@ namespace Financas.Api.DTOs.CartaoCredito
         public int? DiaFechamento { get; set; }
 
         /// <summary>
+        /// Novo dia de vencimento da fatura (1 a 31).
+        /// </summary>
+        [Range(1, 31, ErrorMessage = "O Dia do Vencimento deve ser entre 1 e 31.")]
+        public int? DiaVencimento { get; set; }
+
+        /// <summary>
         /// Altera a situação do cartão (ex: Ativo para Bloqueado).
         /// </summary>
         public StatusCartaoCredito? Status { get; set; }

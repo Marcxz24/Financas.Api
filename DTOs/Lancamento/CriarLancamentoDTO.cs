@@ -50,5 +50,11 @@ namespace Financas.Api.DTOs.Lancamento
         /// Sendo opcional (int?), permite flexibilidade caso o lançamento ainda não esteja vinculado a uma conta.
         /// </summary>
         public int? ContaBancariaId { get; set; }
+
+        /// <summary>
+        /// Identificador do cartão de crédito utilizado na transação.
+        /// Sendo opcional (int?), permite distinguir lançamentos de conta corrente (nulos) de despesas de cartão.
+        /// </summary>
+        public int? CartaoCreditoId { get; set; }
     }
 }

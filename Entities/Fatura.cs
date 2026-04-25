@@ -1,4 +1,6 @@
-﻿namespace Financas.Api.Entities
+﻿using Financas.Api.Entities.Enums;
+
+namespace Financas.Api.Entities
 {
     /// <summary>
     /// Representa o ciclo mensal de gastos de um cartão de crédito.
@@ -40,6 +42,18 @@
         /// Soma de todos os lançamentos vinculados a esta fatura.
         /// </summary>
         public decimal ValorTotal { get; set; }
+
+        /// <summary>
+        /// Valor efetivamente pago pelo usuário para esta fatura. 
+        /// Permite o controle de pagamentos parciais ou totais.
+        /// </summary>
+        public decimal ValorPago { get; set; } = 0;
+
+        /// <summary>
+        /// Define a situação atual da fatura (ex: Aberta, Fechada ou Paga).
+        /// Utilizado para controlar o fluxo de vencimento e liberação de limite.
+        /// </summary>
+        public FaturaStatus Status { get; set; }
 
         /// <summary>
         /// Lista de lançamentos (compras) associados especificamente a este ciclo de fatura.

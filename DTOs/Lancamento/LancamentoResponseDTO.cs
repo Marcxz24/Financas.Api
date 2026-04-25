@@ -63,5 +63,11 @@ namespace Financas.Api.DTOs.Lancamento
         /// Utilizado para exibição direta no front-end sem necessidade de consultas extras.
         /// </summary>
         public string? ContaBancariaNome { get; set; }
+
+        public int? CartaoCreditoId { get; set; }
+
+        public string? CartaoCreditoNome { get; set; }
+
+        public int? FaturaId { get; set; }
     }
 }

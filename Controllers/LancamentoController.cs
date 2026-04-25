@@ -21,7 +21,7 @@ namespace Financas.Api.Controllers
         }
 
         // Endpoint para criar um novo registro (Receita ou Despesa)
-        [HttpPost]
+        [HttpPost("criar-lancamento")]
         [Authorize] // Bloqueia o acesso se o usuário não estiver logado (sem token JWT)
         public async Task<ActionResult<LancamentoResponseDTO>> CriarLancamento([FromBody] CriarLancamentoDTO dto)
         {
@@ -44,7 +44,7 @@ namespace Financas.Api.Controllers
         }
 
         // Endpoint para listar todos os lançamentos do usuário logado
-        [HttpGet]
+        [HttpGet("visualizar-lancamentos")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<LancamentoResponseDTO>>> GetLancamentos()
         {
@@ -68,7 +68,7 @@ namespace Financas.Api.Controllers
         // Define que este método responde ao verbo HTTP PATCH.
         // O PATCH é usado para atualizações parciais (mudar apenas alguns campos).
         // O "{id}" na rota mapeia o ID do lançamento vindo da URL.
-        [HttpPatch("{id}")]
+        [HttpPatch("atualizar-lancamentos/{id}")]
         [Authorize] // Proteção para garantir que apenas usuários logados acessem.
         public async Task<ActionResult> AtualizarLancamento(int id, [FromBody] AtualizarLancamentoDTO dto)
         {
@@ -97,9 +97,9 @@ namespace Financas.Api.Controllers
 
         // Define que este método responde ao verbo HTTP DELETE.
         // O parâmetro "{lancamentoId}" na rota indica que o ID deve vir na URL (ex: api/lancamentos/10).
-        [HttpDelete("{lancamentoId}")]
+        [HttpDelete("deletar-lancamento/{Id}")]
         [Authorize] // Garante que apenas usuários autenticados (com token JWT) acessem este endpoint.
-        public async Task<ActionResult> DeletarLancamento(int lancamentoId)
+        public async Task<ActionResult> DeletarLancamento(int Id)
         {
             try
             {
@@ -109,7 +109,7 @@ namespace Financas.Api.Controllers
 
                 // 2. Chamada do Serviço: Repassa a responsabilidade de exclusão para a camada de negócio.
                 // Enviamos o ID do lançamento e o ID do usuário para validar a posse do registro.
-                await _lancamentoService.DeletarLancamento(lancamentoId, usuarioId);
+                await _lancamentoService.DeletarLancamento(Id, usuarioId);
 
                 // 3. Resposta de Sucesso: O 'NoContent()' retorna o status HTTP 204.
                 // É o padrão mais elegante para exclusões, pois indica que a operação foi um sucesso, 

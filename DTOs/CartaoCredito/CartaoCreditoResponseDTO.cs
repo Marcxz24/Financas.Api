@@ -32,6 +32,11 @@
         public int DiaFechamento { get; set; }
 
         /// <summary>
+        /// Dia do mês em que a fatura vence.
+        /// </summary>
+        public int DiaVencimento { get; set; }
+
+        /// <summary>
         /// Representação textual do status do cartão (ex: "Ativo", "Bloqueado").
         /// Facilitando a leitura pelo Front-end sem necessidade de conversão.
         /// </summary>

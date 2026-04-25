@@ -36,6 +36,8 @@ namespace Financas.Api.Data
         // O EF Core utiliza este DbSet para traduzir operações de código em comandos DML
         public DbSet<CartaoCredito> CartaoCredito { get; set; }
 
+        public DbSet<Fatura> Fatura { get; set; }
+
         // O método usado para configurar o modelo do banco de dados (mapeamento das entidades)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

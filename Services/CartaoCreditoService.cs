@@ -43,6 +43,7 @@ namespace Financas.Api.Services
                 Nome = dto.Nome,
                 Limite = dto.Limite,
                 DiaFechamento = dto.DiaFechamento,
+                DiaVencimento = dto.DiaVencimento,
                 Status = StatusCartaoCredito.Ativo
             };
 
@@ -58,6 +59,7 @@ namespace Financas.Api.Services
                 Nome = cartao.Nome,
                 Limite = cartao.Limite,
                 DiaFechamento = cartao.DiaFechamento,
+                DiaVencimento = cartao.DiaVencimento,
                 Status = cartao.Status.ToString()
             };
         }
@@ -82,6 +84,7 @@ namespace Financas.Api.Services
                 Nome = c.Nome,
                 Limite = c.Limite,
                 DiaFechamento = c.DiaFechamento,
+                DiaVencimento = c.DiaVencimento,
                 Status = c.Status.ToString()
             }).ToList();
         }
@@ -125,6 +128,9 @@ namespace Financas.Api.Services
             if (dto.DiaFechamento.HasValue)
                 cartao.DiaFechamento = dto.DiaFechamento.Value;
 
+            if (dto.DiaVencimento.HasValue)
+                cartao.DiaVencimento = dto.DiaVencimento.Value;
+
             // 4. Persistência
             await _FinancasDbContext.SaveChangesAsync();
 
@@ -136,8 +142,34 @@ namespace Financas.Api.Services
                 Nome = cartao.Nome,
                 Limite = cartao.Limite,
                 DiaFechamento = cartao.DiaFechamento,
+                DiaVencimento = cartao.DiaVencimento,
                 Status = cartao.Status.ToString()
             };
+        }
+
+        /// <summary>
+        /// Método responsável por excluir um cartão de crédito específico, removendo-o do banco de dados e garantindo que ele não possa mais ser acessado ou utilizado.
+        /// </summary>
+        /// <param name="cartaoId"></param>
+        /// <param name="usuarioId"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        /// <exception cref="UnauthorizedAccessException"></exception>
+
+        // Método para excluir um cartão de crédito específico, removendo-o do banco de dados e garantindo que ele não possa mais ser acessado ou utilizado
+        public Task DeletarCartaoCredito(int cartaoId, int usuarioId)
+        {
+            var cartao = _FinancasDbContext.CartaoCredito
+                .FirstOrDefault(c => c.Id == cartaoId);
+
+            if (cartao == null)
+                throw new Exception("Cartão não encontrado");
+
+            if (cartao.UsuarioId != usuarioId)
+                throw new UnauthorizedAccessException("Cartão não pertence ao usuário");
+
+            _FinancasDbContext.CartaoCredito.Remove(cartao);
+            return _FinancasDbContext.SaveChangesAsync();
         }
 
         /// <summary>
@@ -158,6 +190,75 @@ namespace Financas.Api.Services
 
             _FinancasDbContext.CartaoCredito.Remove(cartao);
             await _FinancasDbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Recupera o limite total configurado para um cartão de crédito específico.
+        /// </summary>
+        /// <param name="cartaoId">Identificador único do cartão.</param>
+        /// <param name="usuarioId">Identificador do usuário para garantir a segurança do acesso.</param>
+        /// <returns>O valor decimal correspondente ao limite total do cartão.</returns>
+        /// <exception cref="KeyNotFoundException">Lançada caso o cartão não exista ou não pertença ao usuário informado.</exception>
+        public async Task<decimal> ObterLimiteCartao(int cartaoId, int usuarioId)
+        {
+            // Realiza a busca no banco de dados aplicando o filtro de segurança por UsuarioId
+            var cartao = await _FinancasDbContext.CartaoCredito
+                .FirstOrDefaultAsync(c => c.Id == cartaoId && c.UsuarioId == usuarioId);
+
+            // Validação de existência: essencial para evitar erros de referência nula ao tentar acessar .Limite
+            if (cartao == null)
+                throw new KeyNotFoundException("Cartão não encontrado");
+
+            return cartao.Limite;
+        }
+
+        /// <summary>
+        /// Calcula o valor total pendente de pagamento somando todas as faturas que não estão quitadas (Abertas ou Fechadas).
+        /// Realiza a subtração entre o valor total da fatura e o que já foi pago.
+        /// </summary>
+        /// <param name="cartaoId">Identificador do cartão de crédito.</param>
+        /// <param name="usuarioId">Identificador do usuário para validação de segurança.</param>
+        /// <returns>O saldo devedor total (ValorTotal - ValorPago) de todas as faturas pendentes.</returns>
+        public async Task<decimal> ObterTotalEmAberto(int cartaoId, int usuarioId)
+        {
+            // Realiza a soma de forma otimizada no banco de dados
+            var totalEmAberto = await _FinancasDbContext.Fatura
+                .AsNoTracking() // Melhora a performance ao não rastrear as entidades para edição
+                .Where(f => f.CartaoCreditoId == cartaoId
+                    && f.CartaoCredito.UsuarioId == usuarioId // Garante que o cartão pertence ao usuário logado
+                    && (f.Status == FaturaStatus.Aberta || f.Status == FaturaStatus.Fechada))
+                .Select(f => (decimal?)(f.ValorTotal - f.ValorPago)) // Calcula a diferença individual de cada fatura
+                .SumAsync();
+
+            // Se não houver faturas, retorna 0 em vez de nulo
+            return totalEmAberto ?? 0;
+        }
+
+        /// <summary>
+        /// Realiza a validação de crédito para uma nova compra.
+        /// Verifica se o valor da transação ultrapassa o limite disponível (Limite Total - Dívida Acumulada).
+        /// </summary>
+        /// <param name="cartaoId">Identificador do cartão de crédito.</param>
+        /// <param name="usuarioId">Identificador do usuário para validação de segurança.</param>
+        /// <param name="valorCompra">Valor da nova despesa que se deseja lançar.</param>
+        /// <exception cref="ArgumentException">Lançada se o valor da compra for zero ou negativo.</exception>
+        /// <exception cref="InvalidOperationException">Lançada se o valor da compra for maior que o limite disponível.</exception>
+        public async Task ValidarLimite(int cartaoId, int usuarioId, decimal valorCompra)
+        {
+            // Validação básica de entrada para evitar processamento desnecessário
+            if (valorCompra <= 0)
+                throw new ArgumentException("O Valor deve ser maior que zero.");
+
+            // Recupera os valores necessários utilizando os métodos auxiliares já existentes
+            var limite = await ObterLimiteCartao(cartaoId, usuarioId);
+            var totalEmAberto = await ObterTotalEmAberto(cartaoId, usuarioId);
+
+            // O limite disponível é o que sobra após subtrair todas as faturas não pagas
+            var limiteDisponivel = limite - totalEmAberto;
+
+            // Bloqueia a transação caso o saldo do cartão seja insuficiente
+            if (valorCompra > limiteDisponivel)
+                throw new InvalidOperationException("Limite do cartão insuficiente.");
         }
     }
 }

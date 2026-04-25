@@ -34,6 +34,11 @@ namespace Financas.Api.Entities
         public int DiaFechamento { get; set; }
 
         /// <summary>
+        /// Dia que a fatura atual irá vencer.
+        /// </summary>
+        public int DiaVencimento { get; set; }
+
+        /// <summary>
         /// Define a situação atual do cartão (ex: Ativo, Bloqueado).
         /// </summary>
         public StatusCartaoCredito Status { get; set; }
@@ -47,5 +52,10 @@ namespace Financas.Api.Entities
         /// Representa a coleção de faturas associadas a este cartão de crédito.
         /// </summary>
         public virtual ICollection<Fatura> Faturas { get; set; } = new List<Fatura>();
+
+        /// <summary>
+        /// Representa a coleção de lançamentos associados a este cartão de crédito.
+        /// </summary>
+        public virtual ICollection<Lancamento> Lancamentos { get; set; } = new List<Lancamento>(); 
     }
 }

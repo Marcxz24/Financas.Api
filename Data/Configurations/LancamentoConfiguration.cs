@@ -58,6 +58,18 @@ namespace Financas.Api.Data.Configurations
                 .HasColumnName("conta_bancaria_id")
                 .IsRequired(false);
 
+            // Mapeia a FK do cartão de crédito. O IsRequired(false) permite que um lançamento 
+            // exista temporariamente sem estar vinculado a um cartão de crédito (ex: lançamento pendente).
+            builder.Property(l => l.CartaoCreditoId)
+                .HasColumnName("cartao_credito_id")
+                .IsRequired(false);
+
+            // Mapeia a FK da fatura. O IsRequired(false) permite que um lançamento 
+            // exista temporariamente sem estar vinculado a uma fatura (ex: lançamento pendente).
+            builder.Property(l => l.FaturaId)
+                .HasColumnName("fatura_id")
+                .IsRequired(false);
+
             // Cria um índice para melhorar performance nas consultas por usuário
             builder.HasIndex(l => l.UsuarioId);
 
@@ -90,6 +102,24 @@ namespace Financas.Api.Data.Configurations
             builder.HasOne(l => l.ContaBancaria)
                 .WithMany(c => c.Lancamentos)
                 .HasForeignKey(l => l.ContaBancariaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configuração do Relacionamento com Cartão de Crédito:
+            // Vincula o lançamento ao cartão de crédito utilizado.
+            // O uso do Restrict garante que você não delete um cartão de crédito que ainda possua 
+            // histórico de transações, preservando a rastreabilidade financeira.
+            builder.HasOne(l => l.CartaoCredito)
+                .WithMany(c => c.Lancamentos)
+                .HasForeignKey(l => l.CartaoCreditoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configuração do Relacionamento com Fatura:
+            // Vincula o lançamento à fatura utilizada.
+            // O uso do Restrict garante que você não delete uma fatura que ainda possua 
+            // histórico de transações, preservando a rastreabilidade financeira.
+            builder.HasOne(l => l.Fatura)
+                .WithMany(f => f.Lancamentos)
+                .HasForeignKey(l => l.FaturaId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

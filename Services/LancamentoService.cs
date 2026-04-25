@@ -11,10 +11,16 @@ namespace Financas.Api.Services
         // Variável privada para armazenar o contexto do banco de dados (MySQL)
         private readonly FinancasDbContext _financasDbContext;
 
+        private readonly CartaoCreditoService _cartaoCreditoService;
+
+        private readonly FaturaService _faturaService;
+
         // Construtor que recebe o contexto via Injeção de Dependência
-        public LancamentoService(FinancasDbContext financasDbContext)
+        public LancamentoService(FinancasDbContext financasDbContext, CartaoCreditoService cartaoCreditoService, FaturaService faturaService)
         {
             _financasDbContext = financasDbContext;
+            _cartaoCreditoService = cartaoCreditoService;
+            _faturaService = faturaService;
         }
 
         // Este método aplica uma alteração financeira ao saldo atual da conta
@@ -48,25 +54,33 @@ namespace Financas.Api.Services
         // Este método reverte uma operação financeira anterior para restaurar o saldo original
         private void EstornarValor(ContaBancaria conta, decimal valor, TipoLancamento tipo)
         {
-            if (conta == null)
-                throw new ArgumentNullException(nameof(conta), "A conta bancária não pode ser nula.");
+            var tipoInvertido = tipo == TipoLancamento.Receita
+                ? TipoLancamento.Despesa 
+                : TipoLancamento.Receita;
+
+            AplicarValor(conta, valor, tipoInvertido);
+        }
+
+        private void AplicarValorFatura(Fatura fatura, decimal valor)
+        {
+            if (fatura == null)
+                throw new ArgumentNullException(nameof(fatura), "A fatura não pode ser nula.");
 
             if (valor <= 0)
                 throw new ArgumentException("O valor deve ser maior que zero.");
 
-            // O algoritmo de estorno inverte a lógica do método AplicarValor
-            if (tipo == TipoLancamento.Receita)
-            {
-                // Algoritmo: Para cancelar uma Receita que já foi somada, subtraímos o valor
-                // Isso devolve o saldo ao estado anterior à criação do lançamento
-                conta.Saldo -= valor;
-            }
-            else
-            {
-                // Algoritmo: Para cancelar uma Despesa que já foi subtraída, somamos o valor de volta
-                // Isso recompõe o saldo que havia sido reduzido indevidamente ou que será editado
-                conta.Saldo += valor;
-            }
+            fatura.ValorTotal += valor;
+        }
+
+        private void EstornarValorFatura(Fatura fatura, decimal valor)
+        {
+            if (fatura == null)
+                throw new ArgumentNullException(nameof(fatura), "A fatura não pode ser nula.");
+
+            if (valor <= 0)
+                throw new ArgumentException("O valor deve ser maior que zero.");
+
+            fatura.ValorTotal -= valor;
         }
 
         // Método para criar um novo lançamento (receita ou despesa)
@@ -85,6 +99,12 @@ namespace Financas.Api.Services
             if (dto.ContaBancariaId == 0)
                 dto.ContaBancariaId = null; // Permite que o usuário envie "0" para criar um lançamento sem conta bancária
 
+            if (dto.CartaoCreditoId == 0)
+                dto.CartaoCreditoId = null;
+
+            if (dto.ContaBancariaId != null && dto.CartaoCreditoId != null)
+                throw new InvalidOperationException("Não é permitido informar conta bancária e cartão ao mesmo tempo.");
+
             if (dto.CategoriaId != null)
             {
                 // Verifica se a categoria existe e pertence ao usuário
@@ -96,6 +116,8 @@ namespace Financas.Api.Services
             }
 
             ContaBancaria? contaBancaria = null;
+            CartaoCredito? cartaoCredito = null;
+            Fatura? fatura = null;
 
             if (dto.ContaBancariaId != null)
             {
@@ -104,6 +126,33 @@ namespace Financas.Api.Services
 
                 if (contaBancaria == null)
                     throw new KeyNotFoundException("Conta bancária não encontrada ou não pertence ao usuário.");
+            }
+
+            if (dto.CartaoCreditoId != null)
+            {
+                cartaoCredito = await _financasDbContext.CartaoCredito
+                    .FirstOrDefaultAsync(c => c.Id == dto.CartaoCreditoId && c.UsuarioId == usuarioId);
+
+                if (cartaoCredito == null)
+                    throw new KeyNotFoundException("Cartão de crédito não encontrado ou não pertence ao usuário.");
+
+                if (dto.Tipo == TipoLancamento.Receita)
+                    throw new InvalidOperationException("Não é permitido criar uma receita vinculada a um cartão de crédito.");
+
+                if (dto.Valor <= 0)
+                    throw new ArgumentException("O valor deve ser maior que zero.");
+
+                var totalAberto = await _cartaoCreditoService.ObterTotalEmAberto(cartaoCredito.Id, usuarioId);
+
+                var limiteDisponivel = cartaoCredito.Limite - totalAberto;
+
+                if (dto.Valor > limiteDisponivel)
+                    throw new InvalidOperationException("Limite do cartão de crédito excedido.");
+
+                fatura = await _faturaService.ObterOuCriarFaturaAtualEntidade(cartaoCredito.Id, usuarioId, dto.Data);
+            
+                if (fatura.Status != FaturaStatus.Aberta)
+                    throw new InvalidOperationException("Não é permitido adicionar lançamentos a uma fatura que não esteja aberta.");
             }
 
             // 2. Mapeamento: Transforma o DTO (dados que vieram da web) na Entidade (classe que vai pro banco)
@@ -115,7 +164,9 @@ namespace Financas.Api.Services
                 Tipo = dto.Tipo,
                 UsuarioId = usuarioId, // Vincula o lançamento ao ID do usuário logado
                 CategoriaId = dto.CategoriaId, // Pode ser nulo, o que é permitido pela configuração do banco
-                ContaBancariaId = dto.ContaBancariaId // Pode ser nulo, o que é permitido pela configuração do banco
+                ContaBancariaId = dto.ContaBancariaId, // Pode ser nulo, o que é permitido pela configuração do banco
+                CartaoCreditoId = dto.CartaoCreditoId, // Pode ser nulo, o que é permitido pela configuração do banco
+                FaturaId = fatura?.Id // Vincula o lançamento à fatura, se houver
             };
 
             // Se houver uma conta vinculada, atualiza o saldo em memória
@@ -126,9 +177,26 @@ namespace Financas.Api.Services
                 AplicarValor(contaBancaria, dto.Valor, dto.Tipo);
             }
 
-            // 3. Persistência: Adiciona o objeto ao rastreamento do EF Core e salva no MySQL
-            _financasDbContext.Lancamentos.Add(lancamento);
-            await _financasDbContext.SaveChangesAsync();
+            // 3. Transação: Garante a integridade das operações ao salvar no banco de dados
+            using var transaction = await _financasDbContext.Database.BeginTransactionAsync();
+            try
+            {
+                if (fatura != null)
+                {
+                    lancamento.FaturaId = fatura.Id;
+                    fatura.ValorTotal += dto.Valor;
+                }
+
+                // 4. Persistência: Adiciona o objeto ao rastreamento do EF Core e salva no MySQL
+                _financasDbContext.Lancamentos.Add(lancamento);
+                await _financasDbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
 
             // 4. Retorno: Transforma a entidade salva em um DTO de resposta (Response)
             return new LancamentoResponseDTO
@@ -142,7 +210,10 @@ namespace Financas.Api.Services
                 CategoriaId = lancamento.CategoriaId,
                 CategoriaNome = lancamento.Categoria?.Nome,
                 ContaBancariaId = lancamento.ContaBancariaId,
-                ContaBancariaNome = lancamento.ContaBancaria?.Nome
+                ContaBancariaNome = lancamento.ContaBancaria?.Nome,
+                CartaoCreditoId = lancamento.CartaoCreditoId,
+                CartaoCreditoNome = lancamento.CartaoCredito?.Nome,
+                FaturaId = lancamento.FaturaId
             };
         }
 
@@ -152,7 +223,9 @@ namespace Financas.Api.Services
             // Busca no banco apenas os lançamentos que pertencem ao usuário (Filtro UsuarioId)
             var lancamentos = await _financasDbContext.Lancamentos
                 .Include(l => l.Categoria) // Inclui os dados da categoria relacionada, se houver
-                .Include(c => c.ContaBancaria) // Inclui os dados da conta bancária relacionada, se houver
+                .Include(l => l.ContaBancaria) // Inclui os dados da conta bancária relacionada, se houver
+                .Include(l => l.CartaoCredito) // Inclui os dados do cartão de crédito relacionado, se houver
+                .Include(l => l.Fatura) // Inclui os dados da fatura relacionada, se houver
                 .Where(l => l.UsuarioId == usuarioId)
                 .ToListAsync();
 
@@ -168,7 +241,10 @@ namespace Financas.Api.Services
                 CategoriaId = l.CategoriaId,
                 CategoriaNome = l.Categoria?.Nome,
                 ContaBancariaId = l.ContaBancariaId,
-                ContaBancariaNome = l.ContaBancaria?.Nome
+                ContaBancariaNome = l.ContaBancaria?.Nome,
+                CartaoCreditoId = l.CartaoCreditoId,
+                CartaoCreditoNome = l.CartaoCredito?.Nome,
+                FaturaId = l.FaturaId,
             }).ToList();
         }
 
@@ -177,7 +253,9 @@ namespace Financas.Api.Services
             // 1. Busca o lançamento no banco de dados pelo ID fornecido
             var lancamento = await _financasDbContext.Lancamentos
                 .Include(l => l.Categoria) // Inclui os dados da categoria para possível retorno no DTO
-                .Include(c => c.ContaBancaria) // Inclui os dados da conta bancária para possível retorno no DTO
+                .Include(l => l.ContaBancaria) // Inclui os dados da conta bancária para possível retorno no DTO
+                .Include(l => l.CartaoCredito) // Inclui os dados do cartão de crédito para possível retorno no DTO
+                .Include(l => l.Fatura) // Inclui os dados da fatura para possível retorno no DTO
                 .FirstOrDefaultAsync(l => l.Id == lancamentoId);
 
             // 2. Validação de existência: Verifica se o registro realmente existe no MySQL
@@ -192,12 +270,26 @@ namespace Financas.Api.Services
             if (dto.ContaBancariaId.HasValue && dto.ContaBancariaId != lancamento.ContaBancariaId)
                 throw new InvalidOperationException("Não é permitido alterar a conta bancária de um lançamento. Delete e recrie.");
 
+            if (dto.CartaoCreditoId.HasValue && dto.CartaoCreditoId != lancamento.CartaoCreditoId)
+                throw new InvalidOperationException("Não é permitido alterar o cartão de crédito de um lançamento. Delete e recrie.");
+
             if (dto.Valor.HasValue && dto.Valor <= 0)
                 throw new ArgumentException("O valor deve ser maior que zero.");
 
-            var contaAntiga = lancamento.ContaBancaria; // Armazena a conta antiga para estorno caso seja necessário
-            var valorAntigo = lancamento.Valor; // Armazena o valor antigo para estorno caso seja necessário
-            var tipoAntigo = lancamento.Tipo; // Armazena o tipo antigo para estorno caso seja necessário
+            // Antes de atualizar os campos, armazenamos os valores antigos para comparação e possível estorno
+            var valorAntigo = lancamento.Valor; // Armazena o valor atual para comparação e possível estorno
+            var tipoAntigo = lancamento.Tipo; // Armazena o tipo atual para comparação e possível estorno
+            var contaAntiga = lancamento.ContaBancaria; // Armazena a conta bancária atual para comparação e possível estorno
+
+            var novoValor = dto.Valor ?? lancamento.Valor; 
+            var novoTipo = dto.Tipo.HasValue
+                ? (TipoLancamento)dto.Tipo
+                : lancamento.Tipo;
+
+            // Verifica se houve mudança no valor ou tipo para decidir se é necessário estornar e reaplicar o valor na conta bancária
+            var houveMudancaFinanceira =
+                    novoValor != valorAntigo ||
+                    novoTipo != tipoAntigo;
 
             // 4. Atualização Parcial: Os IFs abaixo permitem que o usuário envie apenas o que deseja mudar.
             // Se o campo no DTO estiver nulo, o valor atual no banco é preservado.
@@ -217,10 +309,6 @@ namespace Financas.Api.Services
             if (dto.Data != null)
                 lancamento.Data = dto.Data.Value;
 
-            var houveMudancaFincaneira = 
-                lancamento.Valor != valorAntigo ||
-                lancamento.Tipo != tipoAntigo;
-
             if (dto.CategoriaId != null)
             {
                 var categoria = await _financasDbContext.Categorias
@@ -239,13 +327,26 @@ namespace Financas.Api.Services
 
             try
             {
-                if (houveMudancaFincaneira)
+                if (houveMudancaFinanceira)
                 {
+                    if (lancamento.Fatura != null &&
+                        (lancamento.Fatura.Status == FaturaStatus.Fechada ||
+                        lancamento.Fatura.Status == FaturaStatus.Paga))
+                    {
+                        throw new InvalidOperationException("Não é permitido alterar um lançamento vinculado a uma fatura fechada ou paga.");
+                    }
+
                     if (contaAntiga != null)
                         EstornarValor(contaAntiga, valorAntigo, tipoAntigo); // Reverte o valor antigo para restaurar o saldo da conta bancária antes de aplicar a nova alteração
 
                     if (lancamento.ContaBancaria != null)
-                        AplicarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Aplica o novo valor para atualizar o saldo da conta bancária com a alteração feita   
+                        AplicarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Aplica o novo valor para atualizar o saldo da conta bancária com a alteração feita
+                
+                    if (lancamento.CartaoCreditoId != null && lancamento.Fatura != null)
+                    {
+                        EstornarValorFatura(lancamento.Fatura, valorAntigo); // Reverte o valor antigo para restaurar o total da fatura antes de aplicar a nova alteração
+                        AplicarValorFatura(lancamento.Fatura, lancamento.Valor); // Aplica o novo valor para atualizar o total da fatura com a alteração feita
+                    }
                 }
 
                 await _financasDbContext.SaveChangesAsync(); // Salva as alterações no banco de dados, incluindo o lançamento e a conta bancária (se houver)
@@ -269,7 +370,10 @@ namespace Financas.Api.Services
                 CategoriaId = lancamento.CategoriaId,
                 CategoriaNome = lancamento.Categoria?.Nome,
                 ContaBancariaId = lancamento.ContaBancariaId,
-                ContaBancariaNome = lancamento.ContaBancaria?.Nome
+                ContaBancariaNome = lancamento.ContaBancaria?.Nome,
+                CartaoCreditoId = lancamento.CartaoCreditoId,
+                CartaoCreditoNome = lancamento.CartaoCredito?.Nome,
+                FaturaId = lancamento.FaturaId
             };
         }
 

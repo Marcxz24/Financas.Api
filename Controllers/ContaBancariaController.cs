@@ -24,7 +24,7 @@ namespace Financas.Api.Controllers
         /// Endpoint para criação de conta. 
         /// Retorna 201 (Created) em caso de sucesso.
         /// </summary>
-        [HttpPost]
+        [HttpPost("criar-conta-bancaria")]
         [Authorize] // Garante que apenas usuários logados acessem
         public async Task<ActionResult<ContaBancariaResponseDTO>> CriarContaBancaria([FromBody] CriarContaBancariaDTO dto)
         {
@@ -47,7 +47,7 @@ namespace Financas.Api.Controllers
         /// <summary>
         /// Recupera todas as contas bancárias do usuário autenticado.
         /// </summary>
-        [HttpGet]
+        [HttpGet("listar-conta-bancaria")]
         [Authorize]
         public async Task<ActionResult<IEnumerable<ContaBancariaResponseDTO>>> GetContaBancaria()
         {
@@ -66,7 +66,7 @@ namespace Financas.Api.Controllers
         /// <summary>
         /// Atualiza parcialmente os dados de uma conta (PATCH).
         /// </summary>
-        [HttpPatch("{id}")]
+        [HttpPatch("Atualizar-conta-bancaria/{id}")]
         [Authorize]
         public async Task<ActionResult<ContaBancariaResponseDTO>> AtualizarContaBancaria([FromBody] AtualizarContaBancariaDTO dto, int id)
         {
@@ -94,7 +94,7 @@ namespace Financas.Api.Controllers
         /// <summary>
         /// Remove uma conta bancária. Retorna 204 (No Content) em caso de sucesso.
         /// </summary>
-        [HttpDelete("{id}")]
+        [HttpDelete("Deletar-conta-bancaria/{id}")]
         [Authorize]
         public async Task<ActionResult> DeletarContaBancaria(int id)
         {

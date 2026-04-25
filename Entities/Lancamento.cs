@@ -55,6 +55,24 @@ namespace Financas.Api.Entities
         public int? ContaBancariaId { get; set; }
 
         /// <summary>
+        /// Identificador do cartão de crédito utilizado. 
+        /// Se preenchido, indica que o lançamento é uma despesa de crédito e não um débito em conta.
+        /// </summary>
+        public int? CartaoCreditoId { get; set; }
+
+        /// <summary>
+        /// Identificador da fatura à qual este lançamento foi vinculado.
+        /// Essencial para agrupar compras por ciclo mensal de pagamento.
+        /// </summary>
+        public int? FaturaId { get; set; }
+
+        /// <summary>
+        /// Propriedade de navegação virtual para acessar os detalhes da fatura vinculada.
+        /// Permite que o Entity Framework carregue os dados da fatura (ex: data de vencimento) junto ao lançamento.
+        /// </summary>
+        public virtual Fatura? Fatura { get; set; }
+
+        /// <summary>
         /// Propriedade de navegação que permite acessar os dados completos da categoria associada.
         /// É marcada como anulável para evitar avisos de compilador (null safety) e indicar 
         /// que o carregamento depende de um JOIN explícito (.Include) na consulta.
@@ -72,5 +90,7 @@ namespace Financas.Api.Entities
         /// O uso de 'null!' indica que o EF Core gerencia a instância desta entidade.
         /// </summary>
         public ContaBancaria ContaBancaria { get; set; } = null!;
+
+        public CartaoCredito? CartaoCredito { get; set; }
     }
 }

@@ -45,5 +45,7 @@ namespace Financas.Api.DTOs.Lancamento
         /// Campo opcional — se nulo, a conta bancária original do registro será preservada.
         /// </summary>
         public int? ContaBancariaId { get; set; }
+
+        public int? CartaoCreditoId { get; set; }
     }
 }
