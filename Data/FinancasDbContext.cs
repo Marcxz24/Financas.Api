@@ -36,7 +36,13 @@ namespace Financas.Api.Data
         // O EF Core utiliza este DbSet para traduzir operações de código em comandos DML
         public DbSet<CartaoCredito> CartaoCredito { get; set; }
 
+        // Representa a tabela de Faturas no banco de dados.
+        // Através deste DbSet, o EF Core gerencia os ciclos financeiros e vincula os lançamentos aos cartões.
         public DbSet<Fatura> Fatura { get; set; }
+
+        // Representa a tabela de Pagamentos de Faturas.
+        // Este DbSet armazena o histórico detalhado de cada transação (total ou parcial) realizada para quitar uma fatura.
+        public DbSet<PagamentoFatura> PagamentoFatura { get; set; }
 
         // O método usado para configurar o modelo do banco de dados (mapeamento das entidades)
         protected override void OnModelCreating(ModelBuilder modelBuilder)

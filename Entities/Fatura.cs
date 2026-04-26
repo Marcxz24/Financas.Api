@@ -56,8 +56,15 @@ namespace Financas.Api.Entities
         public FaturaStatus Status { get; set; }
 
         /// <summary>
-        /// Lista de lançamentos (compras) associados especificamente a este ciclo de fatura.
+        /// Coleção de lançamentos (compras/despesas) vinculados a este ciclo de fatura.
+        /// Permite o rastreio detalhado de cada item que compõe o ValorTotal.
         /// </summary>
         public virtual ICollection<Lancamento> Lancamentos { get; set; } = new List<Lancamento>();
+
+        /// <summary>
+        /// Histórico de pagamentos realizados para esta fatura.
+        /// Permite registrar múltiplos pagamentos parciais até a quitação total do ciclo.
+        /// </summary>
+        public virtual ICollection<PagamentoFatura> Pagamentos { get; set; } = new List<PagamentoFatura>();
     }
 }

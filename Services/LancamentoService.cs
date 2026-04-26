@@ -61,28 +61,6 @@ namespace Financas.Api.Services
             AplicarValor(conta, valor, tipoInvertido);
         }
 
-        private void AplicarValorFatura(Fatura fatura, decimal valor)
-        {
-            if (fatura == null)
-                throw new ArgumentNullException(nameof(fatura), "A fatura não pode ser nula.");
-
-            if (valor <= 0)
-                throw new ArgumentException("O valor deve ser maior que zero.");
-
-            fatura.ValorTotal += valor;
-        }
-
-        private void EstornarValorFatura(Fatura fatura, decimal valor)
-        {
-            if (fatura == null)
-                throw new ArgumentNullException(nameof(fatura), "A fatura não pode ser nula.");
-
-            if (valor <= 0)
-                throw new ArgumentException("O valor deve ser maior que zero.");
-
-            fatura.ValorTotal -= valor;
-        }
-
         // Método para criar um novo lançamento (receita ou despesa)
         public async Task<LancamentoResponseDTO> CriarLancamento(CriarLancamentoDTO dto, int usuarioId)
         {
@@ -291,6 +269,15 @@ namespace Financas.Api.Services
                     novoValor != valorAntigo ||
                     novoTipo != tipoAntigo;
 
+            // Barreira de Segurança Adicional: Se o lançamento estiver vinculado a uma fatura, não permite alterações que possam comprometer a integridade financeira da fatura.
+            if (lancamento.Fatura != null &&
+                        (lancamento.Fatura.Status == FaturaStatus.Fechada ||
+                        lancamento.Fatura.Status == FaturaStatus.Paga))
+            {
+                throw new InvalidOperationException("Não é permitido alterar um lançamento vinculado a uma fatura fechada ou paga.");
+            }
+
+
             // 4. Atualização Parcial: Os IFs abaixo permitem que o usuário envie apenas o que deseja mudar.
             // Se o campo no DTO estiver nulo, o valor atual no banco é preservado.
 
@@ -329,23 +316,16 @@ namespace Financas.Api.Services
             {
                 if (houveMudancaFinanceira)
                 {
-                    if (lancamento.Fatura != null &&
-                        (lancamento.Fatura.Status == FaturaStatus.Fechada ||
-                        lancamento.Fatura.Status == FaturaStatus.Paga))
-                    {
-                        throw new InvalidOperationException("Não é permitido alterar um lançamento vinculado a uma fatura fechada ou paga.");
-                    }
-
                     if (contaAntiga != null)
                         EstornarValor(contaAntiga, valorAntigo, tipoAntigo); // Reverte o valor antigo para restaurar o saldo da conta bancária antes de aplicar a nova alteração
 
                     if (lancamento.ContaBancaria != null)
                         AplicarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Aplica o novo valor para atualizar o saldo da conta bancária com a alteração feita
-                
+
                     if (lancamento.CartaoCreditoId != null && lancamento.Fatura != null)
                     {
-                        EstornarValorFatura(lancamento.Fatura, valorAntigo); // Reverte o valor antigo para restaurar o total da fatura antes de aplicar a nova alteração
-                        AplicarValorFatura(lancamento.Fatura, lancamento.Valor); // Aplica o novo valor para atualizar o total da fatura com a alteração feita
+                        _faturaService.EstornarValorFatura(lancamento.Fatura, valorAntigo);
+                        _faturaService.AplicarValorFatura(lancamento.Fatura, lancamento.Valor);
                     }
                 }
 
