@@ -1,0 +1,164 @@
+/* Configurações do container que envolve toda a interface de cadastro */
+.register-page {
+  height: 100vh; /* Define a altura como 100% da área visível do navegador */
+  width: 100%; /* Garante que o container ocupe toda a largura disponível */
+  display: flex; /* Utiliza Flexbox para gerenciar o posicionamento dos filhos */
+  justify-content: center; /* Centraliza o card horizontalmente */
+  align-items: center; /* Centraliza o card verticalmente */
+  /* Define a cor de fundo sólida solicitada, sobrepondo outras regras */
+  background-color: #121212 !important;
+  background-image: none !important; /* Remove qualquer imagem ou gradiente de fundo */
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; /* Define a família de fontes */
+  padding: 0; /* Remove preenchimentos externos */
+  margin: 0; /* Remove margens externas */
+  overflow: hidden; /* Desabilita barras de rolagem no container principal */
+  box-sizing: border-box; /* Inclui bordas e preenchimento no cálculo das dimensões */
+}
+
+/* Estilização do cartão central que contém o formulário de registro */
+.register-card {
+  background-color: #252526; /* Define a cor de fundo cinza escuro do cartão */
+  width: 100%; /* Permite que o card seja responsivo */
+  max-width: 400px; /* Limita a largura máxima para manter o design elegante */
+  padding: 40px; /* Define o espaçamento interno do cartão */
+  border-radius: 12px; /* Arredonda os cantos do cartão */
+  box-sizing: border-box; /* Garante que o padding não aumente o tamanho total do card */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5); /* Aplica sombra para efeito de profundidade */
+  display: flex; /* Define layout flexível para os elementos internos */
+  flex-direction: column; /* Alinha os elementos internos em coluna */
+  align-items: center; /* Centraliza os elementos internamente */
+  animation: fadeInRegister 0.6s ease-out; /* Aplica animação de entrada ao carregar */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Suaviza mudanças de posição e sombra */
+}
+
+/* Efeito aplicado quando o usuário passa o mouse sobre o cartão */
+.register-card:hover {
+  transform: translateY(-8px); /* Desloca o cartão 8 pixels para cima */
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7); /* Intensifica a sombra durante o hover */
+}
+
+/* Estilização do grupo de cabeçalho (Título e Subtítulo) */
+.register-header {
+  text-align: center; /* Centraliza o texto do cabeçalho */
+  margin-bottom: 35px; /* Define o espaçamento antes do início do formulário */
+  width: 100%; /* Garante que o cabeçalho utilize toda a largura do card */
+  display: flex; /* Habilita flexbox para gerenciar o gap entre os textos */
+  flex-direction: column; /* Empilha h1 e p */
+  gap: 12px; /* Define a distância entre o título e o subtítulo */
+}
+
+/* Estilização do título com efeito de gradiente no texto */
+.register-header h1 {
+  margin: 0; /* Remove margens padrão do h1 */
+  font-size: 32px; /* Define o tamanho da fonte do título */
+  font-weight: 700; /* Define a espessura da fonte como negrito */
+  background: linear-gradient(135deg, #ffffff 0%, #b0b0b0 100%); /* Cria o gradiente de cores */
+  -webkit-background-clip: text; /* Aplica o fundo apenas à área do texto (Webkit) */
+  -webkit-text-fill-color: transparent; /* Torna o texto transparente para mostrar o gradiente */
+  background-clip: text; /* Aplica o fundo apenas à área do texto */
+  letter-spacing: -0.5px; /* Reduz o espaçamento entre as letras */
+}
+
+/* Estilização do texto de apoio abaixo do título */
+.register-subtitle {
+  margin: 0; /* Remove margens padrão */
+  color: #a0a0a0; /* Define a cor cinza claro */
+  font-size: 14px; /* Define o tamanho da fonte */
+}
+
+/* Configuração do layout do formulário */
+.register-form {
+  width: 100%; /* Ocupa toda a largura interna do cartão */
+  display: flex; /* Define layout flexível para os inputs */
+  flex-direction: column; /* Empilha os campos de entrada verticalmente */
+  gap: 18px; /* Define a distância entre cada campo de input */
+}
+
+/* Estilização dos campos de entrada de dados */
+.register-form input {
+  width: 100%; /* Ocupa a largura total do formulário */
+  padding: 14px; /* Define o preenchimento interno do campo */
+  background-color: #3c3c3c; /* Define a cor de fundo do input */
+  border: 1px solid #3e3e42; /* Define a cor da borda sutil */
+  border-radius: 6px; /* Arredonda os cantos dos campos */
+  color: #ffffff; /* Define a cor do texto digitado como branco */
+  font-size: 15px; /* Define o tamanho da fonte do texto interno */
+  outline: none; /* Remove o contorno de foco padrão do navegador */
+  box-sizing: border-box; /* Garante consistência no tamanho total do input */
+  transition: border-color 0.2s, box-shadow 0.2s; /* Suaviza efeitos ao focar no campo */
+}
+
+/* Estilização do texto de exemplo (placeholder) dentro dos inputs */
+.register-form input::placeholder {
+  color: #858585; /* Define a cor do texto de exemplo */
+}
+
+/* Efeito visual quando o campo de entrada está selecionado (foco) */
+.register-form input:focus {
+  border-color: #007acc; /* Muda a borda para azul */
+  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2); /* Adiciona um halo de brilho azul ao redor */
+}
+
+/* Estilização do botão de submissão do formulário */
+.btn-register {
+  width: 100%; /* Define largura total para o botão */
+  padding: 14px; /* Define o preenchimento interno do botão */
+  margin-top: 10px; /* Adiciona espaço acima do botão */
+  background-color: #007acc; /* Define a cor de fundo azul padrão */
+  color: #ffffff; /* Define a cor do texto como branco */
+  border: none; /* Remove a borda padrão */
+  border-radius: 6px; /* Arredonda os cantos do botão */
+  font-size: 16px; /* Define o tamanho da fonte */
+  font-weight: 600; /* Define a fonte como semi-negrito */
+  cursor: pointer; /* Altera o cursor para indicar elemento clicável */
+  transition: background-color 0.2s, transform 0.1s; /* Suaviza cores e cliques */
+}
+
+/* Altera a cor do botão ao passar o mouse */
+.btn-register:hover {
+  background-color: #005a9e; /* Aplica um tom de azul mais escuro */
+}
+
+/* Aplica um efeito de compressão ao clicar no botão */
+.btn-register:active {
+  transform: scale(0.98); /* Reduz levemente a escala do botão */
+}
+
+/* Estilização da seção de link no rodapé do cartão */
+.register-footer {
+  margin-top: 30px; /* Espaçamento entre o formulário e o rodapé */
+  display: flex; /* Alinha o texto e o link horizontalmente */
+  gap: 8px; /* Espaço entre o texto e o link */
+  font-size: 14px; /* Define o tamanho da fonte do rodapé */
+}
+
+/* Estilização do texto comum no rodapé */
+.register-footer span {
+  color: #a0a0a0; /* Define a cor cinza para o texto */
+}
+
+/* Estilização do link para navegação para o login */
+.link-login {
+  color: #007acc; /* Define a cor azul para o link */
+  text-decoration: none; /* Remove o sublinhado padrão */
+  font-weight: 600; /* Define o link em semi-negrito */
+  transition: color 0.2s; /* Suaviza a mudança de cor no hover */
+}
+
+/* Efeito visual ao passar o mouse sobre o link */
+.link-login:hover {
+  color: #00a2ff; /* Muda para um azul mais claro */
+  text-decoration: underline; /* Adiciona sublinhado ao passar o mouse */
+}
+
+/* Define os quadros-chave da animação de entrada do cartão */
+@keyframes fadeInRegister {
+  from {
+    opacity: 0; /* Inicia totalmente invisível */
+    transform: translateY(25px); /* Inicia 25 pixels abaixo da posição final */
+  }
+  to {
+    opacity: 1; /* Termina totalmente visível */
+    transform: translateY(0); /* Termina na posição original */
+  }
+}

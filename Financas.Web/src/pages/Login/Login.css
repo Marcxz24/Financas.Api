@@ -1,0 +1,132 @@
+/* Define o estilo do container que envolve toda a página de login */
+.login-page {
+  height: 100vh; /* Ocupa 100% da altura da janela de visualização */
+  display: flex; /* Habilita o modelo de caixa flexível para alinhamento */
+  justify-content: center; /* Centraliza o conteúdo horizontalmente */
+  align-items: center; /* Centraliza o conteúdo verticalmente */
+  background-color: #121212; /* Define a cor de fundo escura sólida */
+  font-family: 'Segoe UI', Roboto, sans-serif; /* Define a hierarquia de fontes do sistema */
+}
+
+/* Define o estilo do cartão central que contém o formulário */
+.login-card {
+  display: flex; /* Define layout flexível para os elementos internos */
+  flex-direction: column; /* Organiza os elementos internos em coluna */
+  align-items: center; /* Centraliza os elementos internos horizontalmente */
+  
+  padding: 25px 40px 50px 40px; /* Define os espaçamentos internos (superior, laterais, inferior) */
+  
+  background-color: #252526; /* Define a cor de fundo do cartão */
+  border-radius: 12px; /* Arredonda os cantos do cartão */
+  width: 100%; /* Define largura total respeitando o limite máximo */
+  max-width: 400px; /* Limita a largura máxima do cartão */
+  box-sizing: border-box; /* Garante que padding e bordas não aumentem o tamanho total */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); /* Aplica sombra externa para profundidade */
+  
+  animation: fadeIn 0.6s ease-out; /* Aplica a animação de entrada ao carregar */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Define a suavidade das transições de movimento e sombra */
+}
+
+/* Define o comportamento visual quando o mouse está sobre o cartão */
+.login-card:hover {
+  transform: translateY(-5px); /* Move o cartão 5 pixels para cima */
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6); /* Intensifica a sombra para efeito de elevação */
+}
+
+/* Estiliza o cabeçalho dentro do cartão de login */
+.login-header {
+  display: flex; /* Define layout flexível para o título e descrição */
+  flex-direction: column; /* Empilha o título e a descrição */
+  align-items: center; /* Centraliza o texto horizontalmente */
+  text-align: center; /* Garante o alinhamento centralizado do texto */
+  width: 100%; /* Ocupa a largura total do container pai */
+  margin-bottom: 35px; /* Espaçamento abaixo do cabeçalho */
+  gap: 30px; /* Define o espaçamento entre os elementos internos do cabeçalho */
+}
+
+/* Estiliza o título principal com efeito de gradiente no texto */
+.login-header h1 {
+  margin: 0; /* Remove margens padrão */
+  background: linear-gradient(135deg, #ffffff 0%, #b0b0b0 100%); /* Define o gradiente de cor */
+  -webkit-background-clip: text; /* Corta o fundo para preencher apenas o texto (Webkit) */
+  -webkit-text-fill-color: transparent; /* Torna a cor do texto transparente para exibir o gradiente */
+  background-clip: text; /* Corta o fundo para preencher apenas o texto */
+  font-size: 38px; /* Define o tamanho da fonte */
+  font-weight: 700; /* Define a espessura da fonte como negrito */
+  line-height: 1.2; /* Define a altura da linha do texto */
+  letter-spacing: -0.5px; /* Reduz levemente o espaçamento entre letras */
+}
+
+/* Estiliza o texto de descrição abaixo do título */
+.descricao-login {
+  margin: 0; /* Remove margens padrão */
+  color: #a0a0a0; /* Define a cor do texto em cinza claro */
+  font-size: 14px; /* Define o tamanho da fonte */
+  line-height: 1.6; /* Define o espaçamento entre linhas para legibilidade */
+  max-width: 280px; /* Limita a largura do texto para forçar quebra de linha */
+}
+
+/* Estiliza o formulário de login */
+form {
+  width: 100%; /* Ocupa a largura total disponível no cartão */
+  display: flex; /* Define layout flexível para inputs e botão */
+  flex-direction: column; /* Empilha os campos e o botão */
+  gap: 16px; /* Define o espaçamento entre cada campo do formulário */
+}
+
+/* Estilos comuns para campos de entrada e botões */
+.login-card input, 
+.login-card button {
+  width: 100%; /* Ocupa a largura total do formulário */
+  box-sizing: border-box; /* Inclui padding no cálculo da largura total */
+  padding: 14px; /* Define o preenchimento interno */
+  border-radius: 6px; /* Arredonda os cantos */
+  font-size: 16px; /* Define o tamanho da fonte do texto interno */
+}
+
+/* Estilização específica dos campos de entrada (input) */
+.login-card input {
+  border: 1px solid #3e3e42; /* Define a cor e largura da borda */
+  background-color: #3c3c3c; /* Define a cor de fundo interna do campo */
+  color: #fff; /* Define a cor do texto digitado */
+  outline: none; /* Remove o contorno padrão do navegador ao selecionar */
+  transition: border-color 0.2s; /* Suaviza a mudança de cor da borda */
+}
+
+/* Altera a cor da borda quando o campo recebe foco */
+.login-card input:focus {
+  border: 1px solid #007acc; /* Muda a borda para azul ao clicar/digitar */
+}
+
+/* Estilização específica do botão de login */
+.login-card button {
+  background-color: #007acc; /* Define a cor de fundo azul */
+  border: none; /* Remove bordas padrão */
+  color: white; /* Define a cor do texto como branco */
+  font-weight: bold; /* Define o texto em negrito */
+  cursor: pointer; /* Altera o cursor para o ícone de mão ao passar o mouse */
+  transition: background-color 0.2s, transform 0.1s; /* Suaviza a mudança de cor e o efeito de clique */
+  margin-top: 8px; /* Adiciona margem acima do botão */
+}
+
+/* Altera a cor do botão ao passar o mouse */
+.login-card button:hover {
+  background-color: #005a9e; /* Escurece o tom de azul */
+}
+
+/* Aplica efeito de leve redução ao clicar no botão */
+.login-card button:active {
+  transform: scale(0.98); /* Reduz levemente o tamanho do botão ao pressionar */
+}
+
+/* Define a sequência da animação de surgimento gradual */
+@keyframes fadeIn {
+  from {
+    opacity: 0; /* Começa totalmente transparente */
+    transform: translateY(20px); /* Começa 20 pixels abaixo da posição final */
+  }
+  to {
+    opacity: 1; /* Termina totalmente opaco */
+    transform: translateY(0); /* Termina na posição original */
+  }
+}
