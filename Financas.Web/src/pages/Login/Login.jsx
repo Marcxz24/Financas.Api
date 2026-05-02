@@ -4,31 +4,55 @@ import api from "../../services/api";
 // Importa o arquivo de estilos CSS específico deste componente
 import "./login.css";
 // Importa o componente Link para navegação entre rotas
-import { Link } from "react-router-dom";
+import { Link , useNavigate} from "react-router-dom";
 
 function Login() {
+  // 
+  const [erro, setErro] = useState("");
+
   // Define o estado para armazenar o valor do campo de e-mail
   const [email, setEmail] = useState("");
   // Define o estado para armazenar o valor do campo de senha
   const [password, setPassword] = useState("");
 
+  const navigate = useNavigate();
+
   // Define a função assíncrona que processa a submissão do formulário
   const handleLogin = async (e) => {
-    // Interrompe o comportamento padrão de recarregamento do formulário
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      // Realiza uma requisição POST para o endpoint especificado enviando os dados do estado
-      const response = await api.post("/api/auth/login", {
-        email,
-        password,
-      });
+  console.log("1 - Clique detectado");
 
-      // Exibe no console os dados retornados pela resposta da API em caso de sucesso
-      console.log("Login OK:", response.data);
+  setErro("");
+
+  try {
+    const response = await api.post("/api/usuarios/login", {
+      email,
+      password,
+    });
+
+    console.log("2 - API respondeu sucesso");
+    console.log("response.data:", response.data);
+
+    localStorage.setItem(
+      "token",
+      response.data.token || response.data
+    );
+
+    console.log("3 - Token salvo");
+    console.log("4 - Navegando dashboard");
+
+    navigate("/dashboard");
+
     } catch (error) {
-      // Exibe no console o objeto de erro capturado durante a requisição
-      console.error("Erro no login:", error);
+      console.log("X - Caiu no catch");
+
+      console.error(error);
+
+      setErro(
+        error.response?.data ||
+        "Erro ao realizar login."
+      );
     }
   };
 
@@ -68,6 +92,7 @@ function Login() {
 
           {/* Botão de envio do formulário */}
           <button type="submit">Entrar</button>
+          {erro && <p className="mensagem-erro">{erro}</p>}
         </form>
 
         {/* Seção inferior para redirecionamento à página de cadastro */}
