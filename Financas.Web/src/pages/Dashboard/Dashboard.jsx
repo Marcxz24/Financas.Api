@@ -1,97 +1,148 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import "./Dashboard.css";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
-  // Estado para armazenar os dados financeiros que virão da API
+  const navigate = useNavigate();
+
+  // Estado que armazena os dados financeiros vindos da API
   const [resumo, setResumo] = useState({
-    saldo: 0,
-    receitas: 0,
-    despesas: 0
+    totalReceitas: 0,
+    totalDespesas: 0,
+    saldoMensal: 0,
+    saldoBancarioTotal: 0,
+    ultimosLancamentos: [],
   });
 
-  // useEffect para buscar os dados assim que a página carregar
+  // Efeito para buscar os dados ao carregar a página
   useEffect(() => {
     const fetchDados = async () => {
       try {
-        // Exemplo de chamada para seu endpoint de finanças no C#
-        const response = await api.get("/api/transacoes/resumo");
+        // Chamada ao endpoint de resumo mensal
+        const response = await api.get("/api/Dashboard/resumo-mensal");
         setResumo(response.data);
       } catch (error) {
         console.error("Erro ao buscar dados do dashboard:", error);
+        // Redireciona para login caso o token seja inválido (401)
+        if (error.response?.status === 401) {
+          navigate("/login");
+        }
       }
     };
 
     fetchDados();
-  }, []);
+  }, [navigate]);
 
-  const HandleLogout = () => {
-    localStorage.removeItem("token")
-    Navigate("/login");
-  }
+  // Remove o token e desloga o usuário
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
 
   return (
     <div className="dashboard-page">
-
-    {/* Topbar */}
-    <header className="dashboard-header">
-      <div className="logo-area">
-        <h1>Finanças</h1>
-        <span>Painel Financeiro</span>
-      </div>
-
-      <button className="btn-logout" onClick={HandleLogout}>
-        Sair
-      </button>
-    </header>
-
-    {/* Conteúdo */}
-    <main className="dashboard-content">
-
-      {/* Cards */}
-      <section className="resumo-cards">
-
-        <div className="card saldo">
-          <h3>Saldo Atual</h3>
-          <p>
-            R$ {resumo.saldo.toLocaleString("pt-BR", {
-              minimumFractionDigits: 2,
-            })}
-          </p>
+      {/* Cabeçalho com Logo e Navegação */}
+      <header className="dashboard-header">
+        <div className="logo-area">
+          <h1>Finanças</h1>
+          <span>Painel Financeiro</span>
         </div>
+        <nav className="menu-top">
+          <a href="#">Dashboard</a>
+          <a href="#">Transações</a>
+          <a href="#">Relatórios</a>
+          <button className="btn-logout" onClick={handleLogout}>
+            Sair
+          </button>
+        </nav>
+      </header>
 
-        <div className="card receitas">
-          <h3>Receitas</h3>
-          <p>
-            + R$ {resumo.receitas.toLocaleString("pt-BR", {
-              minimumFractionDigits: 2,
-            })}
-          </p>
-        </div>
+      <main className="dashboard-content">
+        {/* Seção de Cards com os Totais principais */}
+        <section className="resumo-cards">
+          <div className="card saldo">
+            <h3>Saldo Bancário Total</h3>
+            <p>
+              R${" "}
+              {resumo.saldoBancarioTotal.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+              })}
+            </p>
+          </div>
 
-        <div className="card despesas">
-          <h3>Despesas</h3>
-          <p>
-            - R$ {resumo.despesas.toLocaleString("pt-BR", {
-              minimumFractionDigits: 2,
-            })}
-          </p>
-        </div>
+          <div className="card receitas">
+            <h3>Receitas (Mês)</h3>
+            <p className="positivo">
+              + R${" "}
+              {resumo.totalReceitas.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+              })}
+            </p>
+          </div>
 
-      </section>
+          <div className="card despesas">
+            <h3>Despesas (Mês)</h3>
+            <p className="negativo">
+              - R${" "}
+              {resumo.totalDespesas.toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+              })}
+            </p>
+          </div>
+        </section>
 
-      {/* Transações */}
-      <section className="ultimas-transacoes">
-        <h2>Últimas Transações</h2>
+        {/* Listagem dinâmica das últimas transações */}
+        <section className="ultimas-transacoes">
+          <h2>Últimas Transações</h2>
+          <div className="transacoes-box">
+            {resumo.ultimosLancamentos.length > 0 ? (
+              resumo.ultimosLancamentos.map((item, index) => (
+                <div key={index} className="item-transacao">
+                  <div className="info-esquerda">
+                    {/* Badge para exibição da data formatada */}
+                    <div className="data-badge">
+                      {item.dataLancamento || item.data
+                        ? new Date(item.dataLancamento || item.data).toLocaleDateString("pt-BR")
+                        : "00/00/0000"}
+                    </div>
 
-        <div className="transacoes-box">
-          <p>Nenhuma transação encontrada.</p>
-        </div>
-      </section>
+                    {/* Detalhes do lançamento: Descrição, Tipo e Conta */}
+                    <div className="detalhes-texto">
+                      <strong className="descricao-principal">
+                        {item.descricao}
+                      </strong>
+                      <div className="sub-info">
+                        <span className={`tag-tipo ${item.tipo === "Receita" ? "txt-receita" : "txt-despesa"}`}>
+                          {item.tipo}
+                        </span>
+                        <span className="separador">•</span>
+                        <span className="conta-nome">
+                          {item.contaBancariaNome || "Sem conta"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-    </main>
-  </div>
+                  {/* Valor do lançamento com cor dinâmica */}
+                  <div className="info-direita">
+                    <strong className={item.tipo === "Receita" ? "positivo" : "negativo"}>
+                      {item.tipo === "Receita" ? "+ " : "- "}
+                      R${" "}
+                      {item.valor.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </strong>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="empty-msg">Nenhuma transação encontrada.</p>
+            )}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
 

@@ -23,3 +23,15 @@ project.lock.json
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Node.js (React)
+node_modules/
+dist/
+dist-ssr
+*.local
+
+# Ambiente e Segredos
+.env
+.env.production
+.env.development
+.env.local

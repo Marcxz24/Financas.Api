@@ -19,6 +19,7 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ContaBancariaService>();
 builder.Services.AddScoped<CartaoCreditoService>();
 builder.Services.AddScoped<FaturaService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 
 builder.Services.AddCors(options =>
