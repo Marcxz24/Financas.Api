@@ -91,6 +91,10 @@ namespace Financas.Api.Entities
         /// </summary>
         public ContaBancaria ContaBancaria { get; set; } = null!;
 
+        /// <summary>
+        /// Propriedade de navegação para acessar os detalhes do cartão de crédito associado.
+        /// Sendo anulável, permite que o sistema identifique lançamentos feitos via dinheiro ou débito direto.
+        /// </summary>
         public CartaoCredito? CartaoCredito { get; set; }
     }
 }

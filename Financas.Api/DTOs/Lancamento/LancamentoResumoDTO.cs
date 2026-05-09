@@ -17,5 +17,11 @@
 
         // Representação em texto do Enum (Receita ou Despesa) para o Front-end
         public string Tipo { get; set; } = string.Empty;
+
+        // Nome da conta bancária associada ao lançamento (ex: "Conta Corrente Itaú")
+        public string? ContaBancariaNome { get; set; }
+
+        // Nome do cartão de crédito associado ao lançamento (ex: "Cartão Crédito - Itaú")
+        public string? CartaoCreditoNome { get; set; }
     }
 }

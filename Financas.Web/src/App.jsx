@@ -4,23 +4,18 @@ import PrivateRoute from "./routes/PrivateRoute";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import ResumoFinanceiro from "./pages/Dashboard/ResumoFinanceiro";
+import Lancamento from "./pages/Lancamentos/Lancamento";
 
 function App() {
   return (
-    // Componente que habilita o histórico de navegação do navegador no React
     <BrowserRouter>
-      {/* Container que envolve todas as definições de rotas da aplicação */}
       <Routes>
-        {/* Define que o componente Login será renderizado no caminho raiz do site */}
         <Route path="/" element={<Login />} />
-        
-        {/* Define o caminho explícito para a tela de Login */}
         <Route path="/login" element={<Login />} />
-        
-        {/* Define o caminho para a tela de registro/criação de conta */}
         <Route path="/criar-conta" element={<Register />} />
 
-        {/* Define o caminho para a tela principal (Dashboard) após a autenticação */}
+        {/* Agrupamos tudo que precisa de proteção e do layout do Dashboard aqui */}
         <Route
           path="/dashboard"
           element={
@@ -28,9 +23,13 @@ function App() {
               <Dashboard />
             </PrivateRoute>
           }
-        />
+        >
+          {/* Estas são as rotas filhas que aparecem no <Outlet /> */}
+          <Route index element={<ResumoFinanceiro />} />
+          <Route path="lancamento" element={<Lancamento />} />
+          <Route path="lancamento/:id" element={<Lancamento />} />
+        </Route>
 
-        {/* Captura qualquer URL não definida e redireciona o usuário para a raiz (Login) */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

@@ -47,7 +47,9 @@ namespace Financas.Api.Services
                     Descricao = l.Descricao,
                     Valor = l.Valor,
                     DataLancamento = l.Data,
-                    Tipo = l.Tipo.ToString() // Converte o Enum para String para o Front-end
+                    Tipo = l.Tipo.ToString(), // Converte o Enum para String para o Front-end
+                    ContaBancariaNome = l.ContaBancaria != null ? l.ContaBancaria.Nome : null, // Evita NullReferenceException
+                    CartaoCreditoNome = l.CartaoCredito != null ? l.CartaoCredito.Nome : null // Evita NullReferenceException
                 })
                 .ToListAsync();
 

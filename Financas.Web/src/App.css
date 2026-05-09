@@ -1,3 +1,17 @@
+/* RESET GLOBAL: Isso garante que padding e border não aumentem o tamanho dos elementos */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Trava o scroll no nível do body */
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;
