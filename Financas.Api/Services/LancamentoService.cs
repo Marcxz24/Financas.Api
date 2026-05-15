@@ -226,6 +226,36 @@ namespace Financas.Api.Services
             }).ToList();
         }
 
+        public async Task<LancamentoResponseDTO?> GetLancamentoId(int id)
+        {
+            var lancamento = await _financasDbContext.Lancamentos
+                .Include(l => l.Categoria)
+                .Include(l => l.ContaBancaria)
+                .Include(l => l.CartaoCredito)
+                .Include(l => l.Fatura)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (lancamento == null)
+                return null;
+
+            return new LancamentoResponseDTO
+            {
+                Id = lancamento.Id,
+                UsuarioId = lancamento.UsuarioId,
+                Descricao = lancamento.Descricao,
+                Valor = lancamento.Valor,
+                Data = lancamento.Data,
+                Tipo = lancamento.Tipo.ToString(),
+                CategoriaId = lancamento.CategoriaId,
+                CategoriaNome = lancamento.Categoria?.Nome,
+                ContaBancariaId = lancamento.ContaBancariaId,
+                ContaBancariaNome = lancamento.ContaBancaria?.Nome,
+                CartaoCreditoId = lancamento.CartaoCreditoId,
+                CartaoCreditoNome = lancamento.CartaoCredito?.Nome,
+                FaturaId = lancamento.FaturaId
+            };
+        }
+
         public async Task<LancamentoResponseDTO> AtualizarLancamento(AtualizarLancamentoDTO dto, int lancamentoId, int usuarioId)
         {
             // 1. Busca o lançamento no banco de dados pelo ID fornecido

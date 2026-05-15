@@ -6,6 +6,9 @@
     /// </summary>
     public class LancamentoResumoDTO
     {
+        // Id do lançamento, usado para navegação e detalhes no front-end
+        public int Id { get; set; }
+
         // Nome ou título do lançamento (ex: "Pagamento Aluguel")
         public string Descricao { get; set; } = string.Empty;
 

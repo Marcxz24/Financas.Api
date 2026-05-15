@@ -29,7 +29,6 @@ body {
   z-index: 100;
 }
 
-/* Estilização do título e subtítulo da logo */
 .logo-area h1 {
   margin: 0;
   font-size: 26px;
@@ -43,7 +42,6 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Links de navegação do menu superior */
 .menu-top {
   display: flex;
   align-items: center;
@@ -62,7 +60,6 @@ body {
   color: #3b82f6;
 }
 
-/* Botão de Logout com destaque em vermelho */
 .btn-logout {
   background: #dc2626;
   color: white;
@@ -81,20 +78,16 @@ body {
   transform: translateY(-1px);
 }
 
-/* Container centralizado para limitar a largura do conteúdo */
 .dashboard-content {
   flex: 1;
   width: 100%;
   max-width: 1400px;
-
   margin: 0 auto;
-
   padding: 20px;
-
   box-sizing: border-box;
 }
 
-/* Layout em grade (Grid) para os cards de resumo */
+/* Layout em grade para os cards */
 .resumo-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -102,7 +95,6 @@ body {
   margin-bottom: 40px;
 }
 
-/* Estilo base dos cards (Saldo, Receitas e Despesas) */
 .card {
   background: #1a1f29;
   border: 1px solid #252a35;
@@ -110,11 +102,6 @@ body {
   padding: 24px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   transition: 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  border-color: #3b82f644;
 }
 
 .card h3 {
@@ -133,17 +120,12 @@ body {
   letter-spacing: -0.5px;
 }
 
-/* Cores específicas para os valores dentro dos cards */
-.receitas .positivo { color: #22c55e; }
-.despesas .negativo { color: #ef4444; }
-
-/* Container da lista de transações recentes */
+/* Container da lista */
 .ultimas-transacoes {
   background: #1a1f29;
   border: 1px solid #252a35;
   border-radius: 16px;
   padding: 28px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .ultimas-transacoes h2 {
@@ -153,125 +135,95 @@ body {
   font-weight: 600;
 }
 
-/* Alinhamento vertical dos itens da lista */
 .transacoes-box {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* Estilização individual de cada linha de transação */
 .item-transacao {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #12161f;
   border-radius: 12px;
-  padding: 18px 24px;
+  padding: 15px 24px;
   border: 1px solid #242833;
   transition: 0.2s;
 }
 
 .item-transacao:hover {
   background: #151a26;
-  border-color: #3b82f633;
+  border-color: #3b82f644;
 }
 
-/* Cores utilitárias para sucesso e erro */
-.positivo { color: #22c55e !important; }
-.negativo { color: #ef4444 !important; }
+/* --- ESTILO DOS BOTÕES (IGUAL À IMAGEM) --- */
 
-/* Mensagem exibida quando não há dados */
-.empty-msg {
-  text-align: center;
-  color: #9ca3af;
-  padding: 20px;
-  font-style: italic;
+.acoes-valor-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 25px; /* Espaço entre botões e o valor */
 }
 
-/* AJUSTES DE RESPONSIVIDADE: Tablets */
-@media (max-width: 1024px) {
-  .resumo-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.btn-group-acoes {
+  display: flex;
+  gap: 10px;
 }
 
-/* AJUSTES DE RESPONSIVIDADE: Celulares */
-@media (max-width: 768px) {
-  .resumo-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-header {
-    padding: 20px;
-    flex-direction: column;
-    text-align: center;
-    gap: 15px;
-  }
-
-  .menu-top {
-    justify-content: center;
-    width: 100%;
-  }
+.btn-acao-tabela {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  color: white;
 }
 
-/* Força a separação da data e hora que aparece grudada */
+/* Botão Editar (Azul/Cinza escuro conforme a imagem) */
+.btn-acao-tabela.editar {
+  background-color: #374151; /* Cor de fundo sóbria */
+  border: 1px solid #4b5563;
+}
+
+.btn-acao-tabela.editar:hover {
+  background-color: #4b5563;
+  transform: scale(1.05);
+}
+
+/* Cores do Valor */
+.positivo { color: #22c55e !important; font-weight: 700; }
+.negativo { color: #ef4444 !important; font-weight: 700; }
+
+/* Formatação da Data e Detalhes */
 .data-wrapper {
-  display: flex !important;
-  flex-direction: column !important;
-  min-width: 100px !important;
+  display: flex;
+  flex-direction: column;
+  min-width: 100px;
   border-right: 1px solid #242833;
   padding-right: 15px;
   margin-right: 15px;
 }
 
-/* Garante que o texto da data não aceite ninguém ao lado dele */
-.data-txt {
-  display: block !important;
-  font-size: 14px;
-  font-weight: 600;
-  color: #ffffff;
-  line-height: 1.2;
-}
+.data-txt { font-size: 14px; font-weight: 600; }
+.hora-txt { font-size: 12px; color: #9ca3af; }
 
-/* Garante que a hora fique na linha de baixo */
-.hora-txt {
-  display: block !important;
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 4px;
-}
+.info-esquerda { display: flex; align-items: center; }
 
-/* Ajusta o alinhamento do container pai */
-.info-esquerda {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-}
+.detalhes-wrapper { display: flex; flex-direction: column; gap: 2px; }
 
-/* Container que agrupa a Descrição + Info da Origem */
-.detalhes-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+.info-item { display: flex; align-items: center; }
+.info-item small { width: 55px; color: #888; font-weight: 500; }
+.origem-txt { color: #ffffff; margin-left: 5px; font-size: 13px; }
 
-/* Cada linha (Conta: Nome ou Cartão: Nome) */
-.info-item {
-  display: flex;
-  align-items: center;
-}
-
-/* O Rótulo (Conta: / Cartão:) */
-.info-item small {
-  display: inline-block;
-  width: 55px;
-  color: #888;
-  font-weight: 500;
-}
-
-/* O Valor (PicPay / Nenhum) */
-.origem-txt {
-  color: #ffffff;
-  margin-left: 5px;
+/* Responsividade */
+@media (max-width: 1024px) { .resumo-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) {
+  .resumo-cards { grid-template-columns: 1fr; }
+  .item-transacao { flex-direction: column; gap: 15px; align-items: flex-start; }
+  .acoes-valor-wrapper { width: 100%; justify-content: space-between; }
 }

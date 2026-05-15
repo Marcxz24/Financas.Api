@@ -8,6 +8,9 @@ namespace Financas.Api.DTOs.Dashboard
     /// </summary>
     public class DashboardResumoResponseDto
     {
+        // Id do último lançamento registrado, usado para navegação rápida no front-end
+        public int Id { get; set; }
+
         // Soma total de entradas do mês atual
         public decimal TotalReceitas { get; set; }
 

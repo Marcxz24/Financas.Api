@@ -44,6 +44,7 @@ namespace Financas.Api.Services
                 .Take(5)
                 .Select(l => new LancamentoResumoDTO
                 {
+                    Id = l.Id,
                     Descricao = l.Descricao,
                     Valor = l.Valor,
                     DataLancamento = l.Data,

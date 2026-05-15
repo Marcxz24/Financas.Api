@@ -65,6 +65,31 @@ namespace Financas.Api.Controllers
             }
         }
 
+        [HttpGet("visualizar-lancamento/{id}")]
+        [Authorize]
+        public async Task<ActionResult<LancamentoResponseDTO>> GetLancamentoId(int id)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userIdClaim))
+                    return Unauthorized(new { mensagem = "Usuário não autenticado." });
+
+                var lancamento = await _lancamentoService.GetLancamentoId(id);
+
+                if (lancamento == null)
+                    return NotFound(new { mensagem = "Lançamento não encontrado."});
+
+
+                return Ok(lancamento);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         // Define que este método responde ao verbo HTTP PATCH.
         // O PATCH é usado para atualizações parciais (mudar apenas alguns campos).
         // O "{id}" na rota mapeia o ID do lançamento vindo da URL.
