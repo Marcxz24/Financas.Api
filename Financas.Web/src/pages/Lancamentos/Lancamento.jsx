@@ -7,7 +7,10 @@ function Lancamento() {
   const [erro, setErro] = useState("");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
-  const [data, setData] = useState(new Date().toISOString().split("T")[0]);
+  
+  // 1. Alterado: Estado inicial vazio para ser preenchido pelo useEffect
+  const [data, setData] = useState(""); 
+  
   const [tipo, setTipo] = useState(1);
   const [categoriaId, setCategoriaId] = useState("");
   const [contaBancariaId, setContaBancariaId] = useState(0);
@@ -20,6 +23,14 @@ function Lancamento() {
   const navigate = useNavigate();
   const { id } = useParams();
   const modo = id ? "editar" : "criar";
+
+  // 2. Adição: Função auxiliar para formatar data e hora local para o padrão do input (YYYY-MM-DDTHH:mm)
+  const obterDataHoraAtual = () => {
+    const agora = new Date();
+    return new Date(agora.getTime() - agora.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+  };
 
   useEffect(() => {
     const carregarDadosIniciais = async () => {
@@ -44,19 +55,20 @@ function Lancamento() {
           setDescricao(d.descricao || "");
           setValor(d.valor || "");
 
+          // 3. Alterado: Na edição, pegamos a data do banco e formatamos para datetime-local
           setData(
             d.data
-              ? d.data.split("T")[0]
-              : new Date().toISOString().split("T")[0],
+              ? d.data.slice(0, 16) 
+              : obterDataHoraAtual()
           );
 
           setTipo(d.tipo || 1);
-
           setCategoriaId(d.categoriaId || "");
-
           setContaBancariaId(d.contaBancariaId || 0);
-
           setCartaoCreditoId(d.cartaoCreditoId || 0);
+        } else {
+          // 4. Adição: Se for um NOVO lançamento, preenche com a hora atual imediatamente
+          setData(obterDataHoraAtual());
         }
       } catch (error) {
         console.error("Erro de sincronização:", error);
@@ -74,7 +86,8 @@ function Lancamento() {
     const dadosParaEnviar = {
       descricao: descricao,
       valor: Number(valor),
-      data: new Date(data).toISOString(),
+      // O back-end em C# aceita bem o formato ISO que o Date() gera a partir do valor do input
+      data: data, 
       tipo: Number(tipo),
       categoriaId: categoriaId ? Number(categoriaId) : null,
       contaBancariaId:
@@ -94,28 +107,30 @@ function Lancamento() {
       }
       navigate("/dashboard");
     } catch (error) {
-      console.error("Erro da API:", error.response?.data);
-      setErro("Erro ao processar o lançamento.");
+      console.error("Erro detectado:", error.response);
+      const mensagem =
+        typeof error.response?.data === "string"
+          ? error.response.data
+          : error.response?.data?.message || "Erro ao processar.";
+      setErro(mensagem);
     }
   };
 
   const handleExcluir = async () => {
-  if (window.confirm("Deseja realmente excluir este lançamento?")) {
-    try {
-      // Alterado de .patch para .delete
-      await api.delete(`/lancamentos/deletar-lancamento/${id}`);
-      
-      // Feedback opcional para o usuário
-      alert("Lançamento removido com sucesso!");
-      
-      // Redireciona para a listagem (Dashboard) após excluir
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Erro ao excluir:", error);
-      setErro("Erro ao excluir o lançamento. Verifique a conexão.");
+    if (window.confirm("Deseja realmente excluir este lançamento?")) {
+      try {
+        await api.delete(`/lancamentos/deletar-lancamento/${id}`);
+        alert("Lançamento removido com sucesso!");
+        navigate("/dashboard");
+      } catch (error) {
+        console.error("Erro ao excluir:", error);
+        const mensagemErro =
+          error.response?.data?.message ||
+          "Erro ao excluir o lançamento. Verifique a conexão.";
+        setErro(mensagemErro);
+      }
     }
-  }
-};
+  };
 
   return (
     <div className="lancamento-page">
@@ -164,21 +179,18 @@ function Lancamento() {
                   value={tipo}
                   onChange={(e) => setTipo(Number(e.target.value))}
                 >
-                  <option value={1} style={{ background: "#1a1f29" }}>
-                    Receita (+)
-                  </option>
-                  <option value={2} style={{ background: "#1a1f29" }}>
-                    Despesa (-)
-                  </option>
+                  <option value={1} style={{ background: "#1a1f29" }}>Receita (+)</option>
+                  <option value={2} style={{ background: "#1a1f29" }}>Despesa (-)</option>
                 </select>
               </div>
             </div>
 
             <div className="grid-form">
               <div className="detalhes-wrapper">
-                <label>Data</label>
+                <label>Data e Hora</label>
+                {/* 5. Alterado: Type para datetime-local */}
                 <input
-                  type="date"
+                  type="datetime-local"
                   className="item-lancamento"
                   value={data}
                   onChange={(e) => setData(e.target.value)}
@@ -192,15 +204,9 @@ function Lancamento() {
                   value={categoriaId}
                   onChange={(e) => setCategoriaId(e.target.value)}
                 >
-                  <option value="" style={{ background: "#1a1f29" }}>
-                    Selecione uma categoria
-                  </option>
+                  <option value="" style={{ background: "#1a1f29" }}>Selecione uma categoria</option>
                   {categorias.map((cat) => (
-                    <option
-                      key={cat.id}
-                      value={cat.id}
-                      style={{ background: "#1a1f29" }}
-                    >
+                    <option key={cat.id} value={cat.id} style={{ background: "#1a1f29" }}>
                       {cat.nome}
                     </option>
                   ))}
@@ -216,15 +222,9 @@ function Lancamento() {
                   value={contaBancariaId}
                   onChange={(e) => setContaBancariaId(e.target.value)}
                 >
-                  <option value={0} style={{ background: "#1a1f29" }}>
-                    Nenhuma / Dinheiro
-                  </option>
+                  <option value={0} style={{ background: "#1a1f29" }}>Nenhuma / Dinheiro</option>
                   {contas.map((conta) => (
-                    <option
-                      key={conta.id}
-                      value={conta.id}
-                      style={{ background: "#1a1f29" }}
-                    >
+                    <option key={conta.id} value={conta.id} style={{ background: "#1a1f29" }}>
                       {conta.nome}
                     </option>
                   ))}
@@ -237,15 +237,9 @@ function Lancamento() {
                   value={cartaoCreditoId}
                   onChange={(e) => setCartaoCreditoId(e.target.value)}
                 >
-                  <option value={0} style={{ background: "#1a1f29" }}>
-                    Nenhum
-                  </option>
+                  <option value={0} style={{ background: "#1a1f29" }}>Nenhum</option>
                   {cartoes.map((cartao) => (
-                    <option
-                      key={cartao.id}
-                      value={cartao.id}
-                      style={{ background: "#1a1f29" }}
-                    >
+                    <option key={cartao.id} value={cartao.id} style={{ background: "#1a1f29" }}>
                       {cartao.nome}
                     </option>
                   ))}
@@ -259,11 +253,7 @@ function Lancamento() {
               </button>
 
               {modo === "editar" && (
-                <button
-                  type="button"
-                  onClick={handleExcluir}
-                  className="btn-deletar"
-                >
+                <button type="button" onClick={handleExcluir} className="btn-deletar">
                   Excluir Registro
                 </button>
               )}

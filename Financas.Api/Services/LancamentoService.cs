@@ -226,8 +226,15 @@ namespace Financas.Api.Services
             }).ToList();
         }
 
+        /// <summary>
+        /// Recupera um lançamento específico pelo seu ID, incluindo todas as suas dependências.
+        /// </summary>
+        /// <param name="id">ID numérico do lançamento.</param>
+        /// <returns>Retorna um DTO com os dados do lançamento ou null caso não seja encontrado.</returns>
         public async Task<LancamentoResponseDTO?> GetLancamentoId(int id)
         {
+            // Busca o lançamento no banco aplicando o carregamento antecipado (Eager Loading)
+            // das entidades relacionadas para evitar múltiplas consultas (N+1) ou retornos nulos nas propriedades de navegação.
             var lancamento = await _financasDbContext.Lancamentos
                 .Include(l => l.Categoria)
                 .Include(l => l.ContaBancaria)
@@ -235,9 +242,12 @@ namespace Financas.Api.Services
                 .Include(l => l.Fatura)
                 .FirstOrDefaultAsync(l => l.Id == id);
 
+            // Validação de existência: evita exceções de referência nula no mapeamento abaixo
             if (lancamento == null)
                 return null;
 
+            // Mapeamento manual da Entidade para o DTO de Resposta (Response)
+            // Isso garante que apenas os dados necessários sejam trafegados para o Front-end
             return new LancamentoResponseDTO
             {
                 Id = lancamento.Id,
@@ -245,9 +255,9 @@ namespace Financas.Api.Services
                 Descricao = lancamento.Descricao,
                 Valor = lancamento.Valor,
                 Data = lancamento.Data,
-                Tipo = lancamento.Tipo.ToString(),
+                Tipo = lancamento.Tipo.ToString(), // Conversão do Enum para string para facilitar o consumo no React
                 CategoriaId = lancamento.CategoriaId,
-                CategoriaNome = lancamento.Categoria?.Nome,
+                CategoriaNome = lancamento.Categoria?.Nome, // Operador condicional nulo para evitar erros caso a categoria seja opcional
                 ContaBancariaId = lancamento.ContaBancariaId,
                 ContaBancariaNome = lancamento.ContaBancaria?.Nome,
                 CartaoCreditoId = lancamento.CartaoCreditoId,
@@ -275,7 +285,7 @@ namespace Financas.Api.Services
             if (lancamento.UsuarioId != usuarioId)
                 throw new UnauthorizedAccessException("Sem permissão para alterar este lançamento.");
 
-            if (dto.ContaBancariaId.HasValue && dto.ContaBancariaId != lancamento.ContaBancariaId)
+            if (dto.ContaBancariaId != lancamento.ContaBancariaId)
                 throw new InvalidOperationException("Não é permitido alterar a conta bancária de um lançamento. Delete e recrie.");
 
             if (dto.CartaoCreditoId.HasValue && dto.CartaoCreditoId != lancamento.CartaoCreditoId)

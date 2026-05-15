@@ -10,27 +10,35 @@
   min-height: calc(100vh - 72px); 
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   background: #0f1115;
-  padding: 40px 20px;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-top: 0px; 
+  padding-bottom: 30px;
 }
 
-/* --- CARD PRINCIPAL --- */
 .lancamento-card {
-  width: 100%;
-  max-width: 900px; /* Mantido em 900px para um tamanho ideal */
-  margin: 40px auto;
-  padding: 40px;
+  box-sizing: border-box;
+  width: 100%;        
+  max-width: 750px;
+  height: auto;
+  margin: 0 auto;
+
+  border-radius: 16px; 
+  border-left: 1px solid #252a35;
+  border-right: 1px solid #252a35;
+  border-top: none;
+  border-bottom: none;
+
   background: #1a1f29;
-  border: 1px solid #252a35;
-  border-radius: 16px;
-  
-  /* Sombra inicial */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  
-  /* Transição suave */
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-  will-change: transform, box-shadow;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  padding: 40px;
+
+  overflow-y: auto;
 }
 
 /* Efeito de crescer e sombra profunda */
@@ -66,7 +74,7 @@
 
 .grid-form {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 30px;
 }
 
@@ -164,20 +172,30 @@
   margin-top: 15px;
 }
 
-/* --- RESPONSIVIDADE --- */
-@media (max-width: 768px) {
-  .lancamento-card {
-    padding: 24px;
-    margin: 20px;
-    max-width: 95%;
-  }
-  
-  .lancamento-card:hover {
-    transform: none; 
+/* Para monitores menores e notebooks */
+@media (max-width: 1020px) {
+  .lancamento-page{
+    padding: 20px 10px;
   }
 
-  .grid-form {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .lancamento-card {
+    padding: 30px 40px;
+    max-width: 95%;
   }
+
+  .grid-form{
+    gap: 15px;
+  }
+
+  .lancamento-header {
+    margin-bottom: 20px;
+  }
+  
+}
+
+/* No seu CSS de formulário */
+.input-form[type="datetime-local"] {
+  /* Garante que o ícone do calendário e relógio fiquem visíveis */
+  padding-right: 10px;
+  font-family: inherit;
 }

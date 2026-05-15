@@ -6,10 +6,18 @@
 }
 
 html, body {
-  height: 100%;
+  min-height: 100vh;
+  height: auto;
   margin: 0;
   padding: 0;
-  overflow: hidden; /* Trava o scroll no nível do body */
+  overflow-y: auto;
+  background: #0f1115;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .counter {
