@@ -4,27 +4,27 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import "../Lancamentos/Lancamento.css";
 
 function Lancamento() {
+  // Estados para controle de erros e campos do formulário
   const [erro, setErro] = useState("");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
-  
-  // 1. Alterado: Estado inicial vazio para ser preenchido pelo useEffect
-  const [data, setData] = useState(""); 
-  
+  const [data, setData] = useState("");
   const [tipo, setTipo] = useState(1);
   const [categoriaId, setCategoriaId] = useState("");
   const [contaBancariaId, setContaBancariaId] = useState(0);
   const [cartaoCreditoId, setCartaoCreditoId] = useState(0);
 
+  // Estados para armazenamento das listas de seleção
   const [categorias, setCategorias] = useState([]);
   const [contas, setContas] = useState([]);
   const [cartoes, setCartoes] = useState([]);
 
+  // Hooks de navegação e captura de parâmetros da URL
   const navigate = useNavigate();
   const { id } = useParams();
   const modo = id ? "editar" : "criar";
 
-  // 2. Adição: Função auxiliar para formatar data e hora local para o padrão do input (YYYY-MM-DDTHH:mm)
+  // Função para formatar a data/hora local para o padrão YYYY-MM-DDTHH:mm
   const obterDataHoraAtual = () => {
     const agora = new Date();
     return new Date(agora.getTime() - agora.getTimezoneOffset() * 60000)
@@ -32,6 +32,7 @@ function Lancamento() {
       .slice(0, 16);
   };
 
+  // Carrega dados das listas e busca o lançamento caso seja modo edição
   useEffect(() => {
     const carregarDadosIniciais = async () => {
       try {
@@ -46,28 +47,17 @@ function Lancamento() {
         setCartoes(resCartoes.data);
 
         if (id && id !== "undefined") {
-          const response = await api.get(
-            `/lancamentos/visualizar-lancamento/${id}`,
-          );
-
+          const response = await api.get(`/lancamentos/visualizar-lancamento/${id}`);
           const d = response.data;
 
           setDescricao(d.descricao || "");
           setValor(d.valor || "");
-
-          // 3. Alterado: Na edição, pegamos a data do banco e formatamos para datetime-local
-          setData(
-            d.data
-              ? d.data.slice(0, 16) 
-              : obterDataHoraAtual()
-          );
-
+          setData(d.data ? d.data.slice(0, 16) : obterDataHoraAtual());
           setTipo(d.tipo || 1);
           setCategoriaId(d.categoriaId || "");
           setContaBancariaId(d.contaBancariaId || 0);
           setCartaoCreditoId(d.cartaoCreditoId || 0);
         } else {
-          // 4. Adição: Se for um NOVO lançamento, preenche com a hora atual imediatamente
           setData(obterDataHoraAtual());
         }
       } catch (error) {
@@ -79,6 +69,7 @@ function Lancamento() {
     carregarDadosIniciais();
   }, [id]);
 
+  // Envia os dados estruturados do formulário para o Back-end
   const handleSalvar = async (e) => {
     e.preventDefault();
     setErro("");
@@ -86,24 +77,19 @@ function Lancamento() {
     const dadosParaEnviar = {
       descricao: descricao,
       valor: Number(valor),
-      // O back-end em C# aceita bem o formato ISO que o Date() gera a partir do valor do input
-      data: data, 
+      data: data,
       tipo: Number(tipo),
-      categoriaId: categoriaId ? Number(categoriaId) : null,
-      contaBancariaId:
-        Number(contaBancariaId) === 0 ? null : Number(contaBancariaId),
-      cartaoCreditoId:
-        Number(cartaoCreditoId) === 0 ? null : Number(cartaoCreditoId),
+      // Envia 0 se nenhuma categoria for selecionada para acionar o reset no C#
+      categoriaId: categoriaId && Number(categoriaId) !== 0 ? Number(categoriaId) : 0,
+      contaBancariaId: Number(contaBancariaId) === 0 ? null : Number(contaBancariaId),
+      cartaoCreditoId: Number(cartaoCreditoId) === 0 ? null : Number(cartaoCreditoId),
     };
 
     try {
       if (modo === "criar") {
         await api.post("/lancamentos/criar-lancamento", dadosParaEnviar);
       } else {
-        await api.patch(
-          `/lancamentos/atualizar-lancamentos/${id}`,
-          dadosParaEnviar,
-        );
+        await api.patch(`/lancamentos/atualizar-lancamentos/${id}`, dadosParaEnviar);
       }
       navigate("/dashboard");
     } catch (error) {
@@ -116,6 +102,7 @@ function Lancamento() {
     }
   };
 
+  // Exclui o registro atual após confirmação do usuário
   const handleExcluir = async () => {
     if (window.confirm("Deseja realmente excluir este lançamento?")) {
       try {
@@ -125,8 +112,7 @@ function Lancamento() {
       } catch (error) {
         console.error("Erro ao excluir:", error);
         const mensagemErro =
-          error.response?.data?.message ||
-          "Erro ao excluir o lançamento. Verifique a conexão.";
+          error.response?.data?.message || "Erro ao excluir o lançamento. Verifique a conexão.";
         setErro(mensagemErro);
       }
     }
@@ -137,9 +123,7 @@ function Lancamento() {
       <div className="dashboard-content">
         <div className="lancamento-card">
           <header className="lancamento-header">
-            <h1>
-              {modo === "criar" ? "Novo Lançamento" : "Gerenciar Lançamento"}
-            </h1>
+            <h1>{modo === "criar" ? "Novo Lançamento" : "Gerenciar Lançamento"}</h1>
             <p className="descricao-header">
               {modo === "criar"
                 ? "Adicione uma nova movimentação financeira."
@@ -188,7 +172,6 @@ function Lancamento() {
             <div className="grid-form">
               <div className="detalhes-wrapper">
                 <label>Data e Hora</label>
-                {/* 5. Alterado: Type para datetime-local */}
                 <input
                   type="datetime-local"
                   className="item-lancamento"
@@ -258,9 +241,7 @@ function Lancamento() {
                 </button>
               )}
 
-              <Link to="/dashboard" className="link-voltar">
-                Voltar para o Dashboard
-              </Link>
+              <Link to="/dashboard" className="link-voltar">Voltar para o Dashboard</Link>
             </div>
 
             {erro && <p className="mensagem-erro">{erro}</p>}

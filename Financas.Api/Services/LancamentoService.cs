@@ -322,7 +322,22 @@ namespace Financas.Api.Services
             // Se o campo no DTO estiver nulo, o valor atual no banco é preservado.
 
             if (dto.CategoriaId == 0)
-                dto.CategoriaId = null; // Permite que o usuário envie "0" para remover a categoria
+            {
+                lancamento.CategoriaId = null; // Permite que o usuário envie "0" para remover a categoria do lançamento
+                lancamento.Categoria = null; // Remove a referência da categoria para garantir que os dados relacionados sejam atualizados corretamente no retorno do DTO
+            }
+            else if (dto.CategoriaId != null)
+            {
+                var categoria = await _financasDbContext.Categorias
+                    .FirstOrDefaultAsync(c => c.Id == dto.CategoriaId && c.UsuarioId == usuarioId);
+
+                if (categoria == null)
+                    throw new KeyNotFoundException("Categoria não encontrada ou não pertence ao usuário.");
+
+                lancamento.CategoriaId = dto.CategoriaId; // Permite atualizar a categoria, inclusive para null (sem categoria)
+
+                lancamento.Categoria = categoria; // Atualiza a referência da categoria para garantir que os dados relacionados sejam carregados corretamente no retorno do DTO
+            }
 
             if (dto.Descricao != null)
                 lancamento.Descricao = dto.Descricao;
@@ -336,19 +351,6 @@ namespace Financas.Api.Services
             if (dto.Data != null)
                 lancamento.Data = dto.Data.Value;
 
-            if (dto.CategoriaId != null)
-            {
-                var categoria = await _financasDbContext.Categorias
-                    .FirstOrDefaultAsync(c => c.Id == dto.CategoriaId && c.UsuarioId == usuarioId);
-
-                if (categoria == null)
-                    throw new KeyNotFoundException("Categoria não encontrada ou não pertence ao usuário.");
-
-                lancamento.CategoriaId = dto.CategoriaId; // Permite atualizar a categoria, inclusive para null (sem categoria)
-
-                lancamento.Categoria = categoria; // Atualiza a referência da categoria para garantir que os dados relacionados sejam carregados corretamente no retorno do DTO
-            }
-
             // 5. Persistência: O EF Core detecta que o objeto 'lancamento' foi modificado e gera o comando UPDATE
             using var transaction = await _financasDbContext.Database.BeginTransactionAsync(); // Inicia uma transação para garantir a atomicidade das operações
 
@@ -361,7 +363,7 @@ namespace Financas.Api.Services
 
                     if (lancamento.ContaBancaria != null)
                         AplicarValor(lancamento.ContaBancaria, lancamento.Valor, lancamento.Tipo); // Aplica o novo valor para atualizar o saldo da conta bancária com a alteração feita
-
+                     
                     if (lancamento.CartaoCreditoId != null && lancamento.Fatura != null)
                     {
                         _faturaService.EstornarValorFatura(lancamento.Fatura, valorAntigo);
