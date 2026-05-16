@@ -15,7 +15,8 @@ namespace Financas.Api.Services
         /// <param name="mes">Mês de referência (1-12)</param>
         /// <param name="ano">Ano de referência</param>
         /// <param name="usuarioId">ID do usuário logado para filtro de segurança</param>
+        /// <param name="contaBancariaId">ID opcional da conta bancária para filtro específico</param>
         /// <returns>Retorna um DTO com os totais e lançamentos do período</returns>
-        Task<DashboardResumoResponseDto> GetResumoMensalAsync(int mes, int ano, int usuarioId);
+        Task<DashboardResumoResponseDto> GetResumoMensalAsync(int mes, int ano, int usuarioId, int? contaBancariaId = null);
     }
 }

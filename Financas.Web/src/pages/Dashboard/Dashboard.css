@@ -227,3 +227,46 @@ body {
   .item-transacao { flex-direction: column; gap: 15px; align-items: flex-start; }
   .acoes-valor-wrapper { width: 100%; justify-content: space-between; }
 }
+
+/* Ajuste específico para o card que contém o filtro */
+.card {
+  display: flex;
+  flex-wrap: wrap; /* Permite que os elementos quebrem linha se necessário */
+  justify-content: space-between; /* Empurra o H3 para a esquerda e o Select para a direita */
+  align-items: center;
+  position: relative;
+}
+
+/* Garante que o título ocupe o espaço correto alinhado ao select */
+.card h3 {
+  margin: 0;
+  flex: 1; /* Permite que o título ocupe o espaço restante da linha */
+}
+
+/* Estilização do select otimizada para dentro do seu card escuro */
+.select-filtro-conta {
+  background-color: #1a1f29; /* Tom escuro idêntico ao fundo dos seus cards */
+  color: #ffffff;
+  border: 1px solid #334155;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: border-color 0.2s ease;
+  max-width: 170px; /* Evita que o select ocupe espaço demais horizontalmente */
+}
+
+.select-filtro-conta:focus {
+  border-color: #6366f1; /* Destaque moderno ao clicar */
+}
+
+/* Força o valor em R$ a ocupar 100% da largura da linha de baixo */
+.card p {
+  width: 100%;
+  margin-top: 16px; /* Espaçamento entre o topo (título/filtro) e o valor em dinheiro */
+  margin-bottom: 0;
+  font-size: 1.8rem; /* Ajuste para manter o destaque do seu valor */
+  font-weight: bold;
+}
