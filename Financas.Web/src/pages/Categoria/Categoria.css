@@ -1,0 +1,327 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Previne quebras de layout por soma de padding/border */
+}
+
+.categoria-page {
+  width: 100%;
+  min-height: calc(100vh - 72px); /* Desconta o header global para evitar scroll vertical desnecessário */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: #0f1115;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding-top: 0px; 
+  padding-bottom: 30px;
+}
+
+.categoria-card {
+  box-sizing: border-box;
+  width: 100%;        
+  max-width: 750px;
+  height: auto;
+  margin: 0 auto;
+
+  /* Bordas laterais simulando colunas isoladas do design */
+  border-radius: 16px; 
+  border-left: 1px solid #252a35;
+  border-right: 1px solid #252a35;
+  border-top: none;
+  border-bottom: none;
+
+  background: #1a1f29;
+  transition: all 0.3s ease; /* Suaviza a animação de hover */
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  padding: 40px;
+
+  overflow-y: auto;
+}
+
+/* Microinteração de elevação para manter consistência com o card de lançamentos */
+.categoria-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8);
+  border-color: #3b82f6;
+}
+
+.categoria-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.categoria-header h1 {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.descricao-header {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.categorias-box {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* Alinhamento bicolunar para inputs; quebra automático em telas menores que 300px */
+.grid-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.detalhes-wrapper label {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.item-categoria {
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  background: #12161f; 
+  border: 1px solid #242833;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.item-categoria:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); /* Efeito glow padrão da UI */
+}
+
+.acoes-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.btn-salvar {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 10px;
+  background: #3b82f6;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.btn-salvar:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.btn-deletar {
+  width: 100%;
+  height: 48px;
+  background-color: #451a1a; /* Tom destrutivo opaco para evitar poluição visual */
+  border: 1px solid #7f1d1d;
+  border-radius: 10px;
+  color: #f87171;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-deletar:hover {
+  background-color: #7f1d1d;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.link-voltar {
+  text-align: center;
+  color: #9ca3af;
+  text-decoration: none;
+  font-size: 14px;
+  display: block;
+  margin-top: 10px;
+  transition: color 0.2s;
+}
+
+.link-voltar:hover {
+  color: #ffffff;
+}
+
+.mensagem-erro {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  margin-top: 15px;
+}
+
+/* --- Seção de Listagem (Grid Inferior) --- */
+.listagem-categorias-section {
+  margin-top: 40px;
+  border-top: 1px solid #242833;
+  padding-top: 25px;
+}
+
+.listagem-categorias-section h2 {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.categorias-grid-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 280px; /* Limita o crescimento vertical da listagem */
+  overflow-y: auto;   /* Força scroll interno se ultrapassar o max-height */
+  padding-right: 6px;
+}
+
+/* Customização da scrollbar interna (Webkit) */
+.categorias-grid-lista::-webkit-scrollbar {
+  width: 6px;
+}
+.categorias-grid-lista::-webkit-scrollbar-thumb {
+  background-color: #242833;
+  border-radius: 4px;
+}
+
+.categoria-item-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #12161f;
+  border: 1px solid #242833;
+  border-radius: 10px;
+  padding: 14px 20px;
+  transition: border-color 0.2s;
+}
+
+.categoria-item-card:hover {
+  border-color: #3b82f6;
+}
+
+.categoria-item-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.icone-cat {
+  color: #3b82f6;
+  font-size: 18px;
+}
+
+.badge-tipo-cat {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cat-receita {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.cat-despesa {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.txt-vazio {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+/* --- Media Queries / Responsividade --- */
+@media (max-width: 1020px) {
+  .categoria-page {
+    padding: 20px 10px;
+  }
+
+  .categoria-card {
+    padding: 30px 40px;
+    max-width: 95%;
+  }
+
+  .grid-form {
+    gap: 15px;
+  }
+
+  .categoria-header {
+    margin-bottom: 20px;
+  }
+}
+
+/* Evita que o elemento option nativo herde fundo claro do SO em modo dark */
+.item-categoria option, 
+.item-categoria optgroup {
+  background-color: #1a1f29;
+  color: #fff;
+}
+
+/* Posicionamento do wrapper para simular o ícone injetado dentro do select */
+.input-icone-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Força o ícone a flutuar sobre o input sem bloquear eventos de clique do select */
+.icone-preview {
+  position: absolute;
+  left: 16px;
+  color: #3b82f6;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+/* Recuo do texto para alinhar com o ícone absoluto inserido à esquerda */
+.select-com-icone {
+  padding-left: 48px;
+}
+
+.btn-editar-lista {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.btn-editar-lista:hover {
+  opacity: 0.7;
+}
+
+.acoes-lista-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}

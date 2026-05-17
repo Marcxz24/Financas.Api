@@ -21,9 +21,16 @@ function Dashboard() {
         </div>
 
         <nav className="menu-top">
-          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/dashboard">
+            Dashboard
+          </Link>
+
           <Link to="/dashboard/lancamento">
             Transações
+          </Link>
+
+          <Link to="/dashboard/categoria">
+            Categorias
           </Link>
 
           <Link to="#">

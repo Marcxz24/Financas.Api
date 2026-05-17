@@ -13,6 +13,8 @@ import ResumoFinanceiro from "./pages/Dashboard/ResumoFinanceiro";
 
 import Lancamento from "./pages/Lancamentos/Lancamento";
 
+import Categoria from "./pages/Categoria/Categoria";
+
 import PrivateRoute from "./routes/PrivateRoute";
 
 function App() {
@@ -53,6 +55,18 @@ function App() {
             path="lancamento/:id"
             element={<Lancamento />}
           />
+
+          {/* Criar Categoria */}
+          <Route
+            path="categoria"
+            element={<Categoria />}
+          />
+
+          {/* Editar Categoria */}
+          <Route
+            path="categoria/:id"
+            element={<Categoria />}
+            />
 
         </Route>
 
